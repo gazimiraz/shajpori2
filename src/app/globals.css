@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand:     #D81B60;
+  --brand-lt:  #F06292;
+  --pale:      #FCE4EC;
+  --ink:       #0F172A;
+  --muted:     #475569;
+  --light:     #94A3B8;
+  --surface:   #FFFFFF;
+  --soft:      #F8FAFC;
+  --warm:      #F1F5F9;
+  --line:      #E2E8F0;
+  --sale:      #E11D48;
+
+  /* legacy */
+  --pink:       #D81B60;
+  --hot-pink:   #F06292;
+  --pale-pink:  #FCE4EC;
+  --deep-pink:  #880E4F;
+  --charcoal:   #0F172A;
+  --text:       #0F172A;
+  --off-white:  #F8FAFC;
+  --border:     #E2E8F0;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { 
+  background: var(--surface); 
+  color: var(--ink); 
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--warm); }
+::-webkit-scrollbar-thumb { background: var(--brand-lt); border-radius: 6px; }
+
+*:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+
+/* Glassmorphism Utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+.glass-dark {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+}
+
+@keyframes marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+.marquee-track { animation: marquee 35s linear infinite; }
+.marquee-track:hover { animation-play-state: paused; }
+
+/* Admin nav */
+.admin-nav-item { @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-gray-400; }
+.admin-nav-item:hover { @apply bg-white/10 text-white; }
+.admin-nav-item.active { @apply bg-[#C2185B]/20 text-[#C2185B]; }
+.status-Pending   { @apply bg-amber-50 text-amber-700; }
+.status-Confirmed { @apply bg-blue-50 text-blue-700; }
+.status-Shipped   { @apply bg-cyan-50 text-cyan-700; }
+.status-Delivered { @apply bg-green-50 text-green-700; }
+.status-Cancelled { @apply bg-red-50 text-red-700; }
+
+/* Section divider */
+.section-heading {
+  @apply text-2xl font-bold text-ink tracking-tight;
+}
