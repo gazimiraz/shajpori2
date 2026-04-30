@@ -1,11 +1,29 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createBrowserClient as createSupabaseBrowserClient } from '@supabase/ssr'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
 export const createBrowserClient = () =>
-  createSupabaseBrowserClient(supabaseUrl, supabaseAnonKey)
+  createSupabaseBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
 
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, { auth: { autoRefreshToken: false, persistSession: false } })
+// Lazy singleton — only created on first use, never at module load time
+let _admin: SupabaseClient | null = null
+function getAdmin(): SupabaseClient {
+  if (!_admin) {
+    _admin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } },
+    )
+  }
+  return _admin
+}
+
+export const supabaseAdmin = new Proxy({} as SupabaseClient, {
+  get(_t, prop) {
+    const admin = getAdmin()
+    const val = (admin as unknown as Record<string, unknown>)[prop as string]
+    return typeof val === 'function' ? (val as Function).bind(admin) : val
+  },
+})
