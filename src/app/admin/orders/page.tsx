@@ -1,9 +1,19 @@
 'use client'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Truck, CheckCircle, XCircle, Package, ChevronDown, ChevronRight, Filter } from 'lucide-react'
+import { Search, Truck, CheckCircle, XCircle, Package, ChevronDown, ChevronRight, Filter, Send, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { OrderStatus } from '@/types'
+import { useCourierStore, type CourierSlug, type Shipment } from '@/lib/courierStore'
+
+const COURIER_OPTIONS: { slug: CourierSlug; name: string; logo: string }[] = [
+  { slug:'steadfast', name:'Steadfast',        logo:'🚚' },
+  { slug:'pathao',    name:'Pathao',            logo:'🟠' },
+  { slug:'paperfly',  name:'Paperfly',          logo:'✈️' },
+  { slug:'redx',      name:'RedX',              logo:'🔴' },
+  { slug:'ecourier',  name:'eCourier',          logo:'📦' },
+  { slug:'sundarban', name:'Sundarban Courier', logo:'🏢' },
+]
 
 const MOCK_ORDERS = [
   { order_id:'o1', order_number:'SJP-2025-00001', guest_email:'fatima@example.com', items_ordered:[{ name:'Bloom Garden Midi Dress', size:'M', color:'Blush Pink', qty:1, unit_price:3200, total_price:3200 }], subtotal:3200, delivery_charge:0, discount_amount:0, total_amount:3200, payment_status:'Paid', payment_method:'stripe', status:'Delivered' as OrderStatus, shipping_address:{ name:'Fatima Rahman', street:'House 12, Road 5, Dhanmondi', city:'Dhaka', district:'Dhaka', postal_code:'1209' }, tracking_number:'BD123456789', created_at:'2025-04-08T10:00:00' },
@@ -43,12 +53,185 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
+/* ── Courier Booking Modal ──────────────────────────────────────────────── */
+function BookCourierModal({ order, onClose }: {
+  order: typeof MOCK_ORDERS[0]; onClose: () => void
+}) {
+  const { configs, addShipment, shipments } = useCourierStore()
+  const [selectedCourier, setSelectedCourier] = useState<CourierSlug>('steadfast')
+  const [codAmount, setCodAmount]   = useState(order.total_amount)
+  const [weight, setWeight]         = useState(0.5)
+  const [note, setNote]             = useState('')
+  const [manualTrack, setManualTrack] = useState('')
+  const [loading, setLoading]       = useState(false)
+
+  const enabledCouriers = COURIER_OPTIONS.filter(c => configs[c.slug]?.enabled)
+  const courier = COURIER_OPTIONS.find(c => c.slug === selectedCourier)!
+  const cfg = configs[selectedCourier]
+  const hasApi = cfg?.apiKey && selectedCourier !== 'sundarban'
+  const alreadyBooked = shipments.find(s => s.orderId === order.order_id && s.courier === selectedCourier)
+
+  async function book() {
+    if (!hasApi && !manualTrack) { toast.error('Enter a tracking number'); return }
+    setLoading(true)
+    try {
+      let consignmentId = `MANUAL-${Date.now()}`
+      let trackingCode  = manualTrack
+
+      if (hasApi) {
+        const res = await fetch(`/api/courier/${selectedCourier}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            apiKey:          cfg.apiKey,
+            apiSecret:       cfg.apiSecret,
+            storeId:         cfg.storeId,
+            invoice:         order.order_number,
+            recipientName:   order.shipping_address.name,
+            recipientPhone:  '',
+            recipientAddress:`${order.shipping_address.street}, ${order.shipping_address.city}`,
+            codAmount,
+            weight,
+            note,
+          }),
+        })
+        const data = await res.json()
+        if (!res.ok) { toast.error(data.error ?? 'Booking failed'); setLoading(false); return }
+        consignmentId = data.consignmentId ?? consignmentId
+        trackingCode  = data.trackingCode  ?? consignmentId
+      }
+
+      const shipment: Shipment = {
+        id:              `sh-${Date.now()}`,
+        orderId:         order.order_id,
+        orderNumber:     order.order_number,
+        courier:         selectedCourier,
+        consignmentId,
+        trackingCode,
+        recipientName:   order.shipping_address.name,
+        recipientPhone:  '',
+        recipientAddress:`${order.shipping_address.street}, ${order.shipping_address.city}`,
+        codAmount,
+        weight,
+        note,
+        status:          'pending',
+        createdAt:       new Date().toISOString(),
+        updatedAt:       new Date().toISOString(),
+      }
+      addShipment(shipment)
+      toast.success(`Booked with ${courier.name}! Tracking: ${trackingCode}`)
+      onClose()
+    } catch {
+      toast.error('Network error')
+    }
+    setLoading(false)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      onClick={onClose}>
+      <motion.div initial={{ opacity:0, scale:0.96 }} animate={{ opacity:1, scale:1 }}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+        onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div>
+            <p className="font-bold text-gray-900">Book Courier</p>
+            <p className="text-[11px] text-gray-400 font-mono mt-0.5">{order.order_number}</p>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-gray-100 text-gray-400"><X size={16}/></button>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {/* Recipient info (read-only) */}
+          <div className="bg-gray-50 rounded-xl p-3.5 text-[12px] text-gray-600 space-y-0.5">
+            <p className="font-bold text-gray-800">{order.shipping_address.name}</p>
+            <p>{order.shipping_address.street}, {order.shipping_address.city}</p>
+            <p className="font-semibold text-[#D81B60] mt-1">COD: ৳{order.total_amount.toLocaleString()}</p>
+          </div>
+
+          {/* Courier select */}
+          <div>
+            <label className="block text-[11px] font-semibold text-gray-500 mb-2">Select Courier</label>
+            <div className="grid grid-cols-3 gap-2">
+              {COURIER_OPTIONS.map(c => {
+                const active = selectedCourier === c.slug
+                const enabled = configs[c.slug]?.enabled
+                return (
+                  <button key={c.slug} onClick={() => setSelectedCourier(c.slug)}
+                    className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border text-[11px] font-semibold transition-all ${
+                      active ? 'border-[#D81B60] bg-pink-50 text-[#D81B60]' : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                    } ${!enabled ? 'opacity-40' : ''}`}>
+                    <span className="text-lg">{c.logo}</span>
+                    {c.name.split(' ')[0]}
+                    {enabled && <span className="text-[9px] text-green-500">● Active</span>}
+                  </button>
+                )
+              })}
+            </div>
+            {!cfg?.enabled && (
+              <p className="text-[11px] text-amber-600 mt-2">⚠ Enable this courier in Courier Settings first.</p>
+            )}
+            {alreadyBooked && (
+              <p className="text-[11px] text-blue-600 mt-2">ℹ Already booked: {alreadyBooked.trackingCode}</p>
+            )}
+          </div>
+
+          {/* Fields */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-semibold text-gray-500 mb-1.5">COD Amount (৳)</label>
+              <input type="number" value={codAmount} onChange={e => setCodAmount(Number(e.target.value))}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-gray-500 mb-1.5">Weight (kg)</label>
+              <input type="number" step="0.1" value={weight} onChange={e => setWeight(Number(e.target.value))}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200" />
+            </div>
+          </div>
+
+          {!hasApi && (
+            <div>
+              <label className="block text-[11px] font-semibold text-gray-500 mb-1.5">Manual Tracking Number</label>
+              <input value={manualTrack} onChange={e => setManualTrack(e.target.value)}
+                placeholder="Enter tracking number manually"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200 font-mono" />
+            </div>
+          )}
+
+          <div>
+            <label className="block text-[11px] font-semibold text-gray-500 mb-1.5">Note / Instructions</label>
+            <textarea value={note} rows={2} onChange={e => setNote(e.target.value)}
+              placeholder="Fragile, call before delivery, etc."
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200 resize-none" />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 pb-5 flex gap-3">
+          <button onClick={onClose} className="flex-1 border border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-500 hover:bg-gray-50">
+            Cancel
+          </button>
+          <button onClick={book} disabled={loading || (!cfg?.enabled)}
+            className="flex-1 flex items-center justify-center gap-2 text-white rounded-xl py-2.5 text-sm font-bold disabled:opacity-50 hover:opacity-90"
+            style={{ background:'#D81B60' }}>
+            <Send size={14}/>{loading ? 'Booking…' : hasApi ? 'Book via API' : 'Save Shipment'}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
 export default function OrdersPage() {
   const [orders, setOrders] = useState(MOCK_ORDERS)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [trackingInput, setTrackingInput] = useState<Record<string, string>>({})
+  const [bookingOrder, setBookingOrder] = useState<typeof MOCK_ORDERS[0] | null>(null)
 
   const filtered = orders.filter(o => {
     const q = search.toLowerCase()
@@ -66,6 +249,9 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-4 max-w-[1400px]">
+      <AnimatePresence>
+        {bookingOrder && <BookCourierModal order={bookingOrder} onClose={() => setBookingOrder(null)} />}
+      </AnimatePresence>
 
       {/* Toolbar */}
       <div className="bg-white rounded-xl border border-gray-100 px-4 py-3 flex items-center gap-3 flex-wrap">
@@ -236,11 +422,17 @@ export default function OrdersPage() {
                               <p className="text-xs text-gray-400 mt-2">No further actions</p>
                             </div>
                           )}
-                          <div className="mt-4 pt-4 border-t border-gray-200">
+                          <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
                             <div className="flex items-center justify-between text-xs">
                               <span className="text-gray-400">Payment method</span>
                               <span className="font-semibold text-gray-700 capitalize">{order.payment_method}</span>
                             </div>
+                            <button
+                              onClick={e => { e.stopPropagation(); setBookingOrder(order) }}
+                              className="w-full flex items-center justify-center gap-2 text-white rounded-lg py-2.5 text-xs font-bold hover:opacity-90 transition-opacity"
+                              style={{ background: '#D81B60' }}>
+                              <Send size={12} /> Book Courier
+                            </button>
                           </div>
                         </div>
                       </div>

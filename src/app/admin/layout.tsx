@@ -9,7 +9,7 @@ import {
   Users, Bell, Settings, Cpu, ClipboardList,
   ChevronLeft, Store, ChevronRight, MonitorSmartphone, Tag,
   UserCog, ShieldCheck, LayoutGrid, Barcode, FileText,
-  Navigation, PieChart, Truck, Globe
+  Navigation, PieChart, Truck, Globe, Send
 } from 'lucide-react'
 
 const BRAND = '#D81B60'
@@ -30,6 +30,7 @@ const NAV = [
       { href: '/admin/inventory',  label: 'Inventory',  icon: Warehouse },
       { href: '/admin/customers',  label: 'Customers',  icon: Users },
       { href: '/admin/purchase',   label: 'Purchase',   icon: ClipboardList },
+      { href: '/admin/courier',    label: 'Courier',    icon: Send },
       { href: '/admin/pos',        label: 'POS',        icon: MonitorSmartphone },
     ],
   },
@@ -73,6 +74,7 @@ const SHORTCUTS = [
   { href: '/admin/reports',      label: 'Reports',    icon: PieChart },
   { href: '/admin/barcode',      label: 'Barcode',    icon: Barcode },
   { href: '/admin/invoice',      label: 'Invoice',    icon: FileText },
+  { href: '/admin/courier',      label: 'Courier',    icon: Send },
   { href: '/admin/team',         label: 'Team',       icon: UserCog },
   { href: '/admin/website',      label: 'Website',    icon: Globe },
   { href: '/admin/menu',         label: 'Menu',       icon: Navigation },
