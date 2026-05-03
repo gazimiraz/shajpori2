@@ -9,7 +9,7 @@ import {
   Users, Bell, Settings, Cpu, ClipboardList,
   ChevronLeft, Store, ChevronRight, MonitorSmartphone, Tag,
   UserCog, ShieldCheck, LayoutGrid, Barcode, FileText,
-  Navigation, PieChart, Truck
+  Navigation, PieChart, Truck, Globe
 } from 'lucide-react'
 
 const BRAND = '#D81B60'
@@ -42,6 +42,12 @@ const NAV = [
     ],
   },
   {
+    group: 'Website',
+    items: [
+      { href: '/admin/website', label: 'Website Settings', icon: Globe },
+    ],
+  },
+  {
     group: 'Administration',
     items: [
       { href: '/admin/team',  label: 'Team Members', icon: UserCog },
@@ -68,6 +74,7 @@ const SHORTCUTS = [
   { href: '/admin/barcode',      label: 'Barcode',    icon: Barcode },
   { href: '/admin/invoice',      label: 'Invoice',    icon: FileText },
   { href: '/admin/team',         label: 'Team',       icon: UserCog },
+  { href: '/admin/website',      label: 'Website',    icon: Globe },
   { href: '/admin/menu',         label: 'Menu',       icon: Navigation },
   { href: '/admin/settings',     label: 'Settings',   icon: Settings },
   { href: '/',                   label: 'View Store', icon: Store },
