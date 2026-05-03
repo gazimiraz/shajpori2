@@ -93,21 +93,25 @@ export default function ProductCard({ product }: { product: Product }) {
 
           {/* Wishlist */}
           <button onClick={e => { e.preventDefault(); setWished(v => !v) }}
-            className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center bg-white/90 hover:bg-white transition-colors">
-            <Heart size={13} fill={wished ? '#C2185B' : 'none'} stroke={wished ? '#C2185B' : '#666'} />
+            className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center bg-white/90 hover:bg-white shadow-sm transition-transform hover:scale-110">
+            <Heart size={14} fill={wished ? '#D81B60' : 'none'} stroke={wished ? '#D81B60' : '#666'} className="transition-colors" />
           </button>
 
           {/* Quick add — slide up */}
           <AnimatePresence>
             {hovered && product.total_stock > 0 && (
-              <motion.button onClick={handleAdd}
-                initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-                className="absolute bottom-0 left-0 right-0 bg-[#111] hover:bg-[#C2185B] text-white text-[11px] font-semibold tracking-widest uppercase py-3 flex items-center justify-center gap-2 transition-colors"
+              <motion.div
+                initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }}
+                transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+                className="absolute bottom-3 left-3 right-3 flex justify-center"
               >
-                <ShoppingBag size={12} />
-                {adding ? '✓  Added' : 'Quick Add'}
-              </motion.button>
+                <button onClick={handleAdd}
+                  className="w-full bg-white/95 backdrop-blur-md hover:bg-[#D81B60] text-gray-900 hover:text-white text-[11px] font-bold tracking-widest uppercase py-2.5 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all duration-300"
+                >
+                  <ShoppingBag size={14} />
+                  {adding ? '✓ Added' : 'Quick Add'}
+                </button>
+              </motion.div>
             )}
           </AnimatePresence>
 

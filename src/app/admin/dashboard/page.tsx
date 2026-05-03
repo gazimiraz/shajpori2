@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -11,7 +11,8 @@ import {
   CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts'
 
-const BRAND = '#C2185B'
+const BRAND = '#D81B60'
+const BRAND_GRADIENT = 'linear-gradient(135deg, #D81B60, #F06292)'
 
 const REVENUE_DATA = [
   { month:'Nov', revenue:58000 },{ month:'Dec', revenue:74000 },
@@ -19,7 +20,7 @@ const REVENUE_DATA = [
   { month:'Mar', revenue:95000 },{ month:'Apr', revenue:112000 },
 ]
 const CATEGORY_DATA = [
-  { name:'Dresses',     value:48, color:'#C2185B' },
+  { name:'Dresses',     value:48, color:'#D81B60' },
   { name:'Bags',        value:27, color:'#1565C0' },
   { name:'Jewelry',     value:15, color:'#B8860B' },
   { name:'Accessories', value:10, color:'#2E7D32' },
@@ -50,18 +51,20 @@ function KPICard({ label,value,sub,trend,icon:Icon,color,href }:{
   const up = trend >= 0
   const inner = (
     <motion.div initial={{opacity:0,y:12}} animate={{opacity:1,y:0}}
-      className="bg-white rounded-xl border border-gray-100 p-5 flex items-start justify-between gap-4 hover:shadow-md transition-shadow">
+      className="bg-white rounded-3xl border border-gray-100 p-6 flex items-start justify-between gap-4 shadow-sm hover:shadow-md transition-shadow group">
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">{label}</p>
-        <p className="text-[26px] font-black text-gray-900 leading-none mb-1.5">{value}</p>
-        <div className="flex items-center gap-1.5">
-          {up?<TrendingUp size={12} className="text-emerald-500"/>:<TrendingDown size={12} className="text-red-400"/>}
-          <span className={`text-[11px] font-semibold ${up?'text-emerald-600':'text-red-500'}`}>{up?'+':''}{trend}%</span>
-          <span className="text-[11px] text-gray-400">{sub}</span>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">{label}</p>
+        <p className="text-[28px] font-black text-gray-900 leading-none mb-2 font-display">{value}</p>
+        <div className="flex items-center gap-1.5 mt-2">
+          <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${up?'bg-emerald-50 text-emerald-600':'bg-red-50 text-red-500'}`}>
+            {up?<TrendingUp size={12}/>:<TrendingDown size={12}/>}
+            <span>{up?'+':''}{trend}%</span>
+          </div>
+          <span className="text-[11px] text-gray-400 font-medium">{sub}</span>
         </div>
       </div>
-      <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{background:color+'18'}}>
-        <Icon size={20} style={{color}}/>
+      <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110" style={{background:color+'15'}}>
+        <Icon size={22} style={{color}}/>
       </div>
     </motion.div>
   )
@@ -74,29 +77,29 @@ export default function DashboardPage() {
     <div className="space-y-6 max-w-[1400px]">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-[22px] font-black text-gray-900">Dashboard</h1>
-          <p className="text-[12px] text-gray-400 mt-0.5">{new Date().toLocaleDateString('en-BD',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</p>
+          <h1 className="font-display text-3xl font-black text-gray-900">Dashboard</h1>
+          <p className="text-[12px] text-gray-400 mt-1 font-medium">{new Date().toLocaleDateString('en-BD',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</p>
         </div>
-        <div className="flex border border-gray-200 rounded-lg overflow-hidden text-[11px] font-semibold">
+        <div className="flex bg-white shadow-sm border border-gray-100 p-1 rounded-xl text-[11px] font-bold tracking-wide">
           {(['7d','30d','90d'] as const).map(p => (
             <button key={p} onClick={()=>setPeriod(p)}
-              className={`px-4 py-2 transition-colors ${period===p?'text-white':'text-gray-500 hover:bg-gray-50'}`}
-              style={period===p?{background:BRAND}:{}}>
+              className={`px-5 py-2 rounded-lg transition-all ${period===p?'text-white shadow-md':'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+              style={period===p?{backgroundImage:BRAND_GRADIENT}:{}}>
               {p==='7d'?'7 Days':p==='30d'?'30 Days':'90 Days'}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        <KPICard label="Total Revenue"   value="৳1,12,000" sub="vs last month" trend={18}  icon={DollarSign}   color="#C2185B" href="/admin/finance"/>
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        <KPICard label="Total Revenue"   value="৳1,12,000" sub="vs last month" trend={18}  icon={DollarSign}   color="#D81B60" href="/admin/finance"/>
         <KPICard label="Total Orders"    value="35"         sub="vs last month" trend={17}  icon={ShoppingCart} color="#1565C0" href="/admin/orders"/>
         <KPICard label="Total Customers" value="12"         sub="new this month" trend={25} icon={Users}        color="#059669" href="/admin/customers"/>
         <KPICard label="Avg Order Value" value="৳3,200"    sub="vs last month" trend={-4}  icon={Package}      color="#D97706"/>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
           <div className="flex items-center justify-between mb-5">
             <div><h3 className="font-bold text-[14px] text-gray-800">Revenue Trend</h3><p className="text-[11px] text-gray-400 mt-0.5">Last 6 months</p></div>
             <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">+18%</span>
@@ -117,7 +120,7 @@ export default function DashboardPage() {
             </AreaChart>
           </ResponsiveContainer>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-5">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
           <h3 className="font-bold text-[14px] text-gray-800 mb-1">Sales by Category</h3>
           <p className="text-[11px] text-gray-400 mb-4">Share of revenue</p>
           <ResponsiveContainer width="100%" height={140}>
@@ -139,11 +142,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
             <h3 className="font-bold text-[14px] text-gray-800">Recent Orders</h3>
-            <Link href="/admin/orders" className="text-[11px] font-semibold text-[#C2185B] hover:underline flex items-center gap-1">View all <ArrowRight size={11}/></Link>
+            <Link href="/admin/orders" className="text-[11px] font-bold uppercase tracking-wider text-brand hover:underline flex items-center gap-1">View all <ArrowRight size={12}/></Link>
           </div>
           <div className="divide-y divide-gray-50">
             {RECENT_ORDERS.map(o=>{
@@ -171,10 +174,10 @@ export default function DashboardPage() {
             })}
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
             <h3 className="font-bold text-[14px] text-gray-800">Top Products</h3>
-            <Link href="/admin/products" className="text-[11px] font-semibold text-[#C2185B] hover:underline flex items-center gap-1">View all <ArrowRight size={11}/></Link>
+            <Link href="/admin/products" className="text-[11px] font-bold uppercase tracking-wider text-brand hover:underline flex items-center gap-1">View all <ArrowRight size={12}/></Link>
           </div>
           <div className="divide-y divide-gray-50">
             {TOP_PRODUCTS.map((p,i)=>(
@@ -199,34 +202,34 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
         {([
-          {label:'Orders',   href:'/admin/orders',   icon:ShoppingCart, color:'#C2185B'},
+          {label:'Orders',   href:'/admin/orders',   icon:ShoppingCart, color:'#D81B60'},
           {label:'Products', href:'/admin/products', icon:Package,      color:'#1565C0'},
           {label:'Purchase', href:'/admin/purchase', icon:Truck,        color:'#D97706'},
           {label:'Reports',  href:'/admin/reports',  icon:Star,         color:'#059669'},
         ] as const).map(a=>{const Icon=a.icon;return(
           <Link key={a.label} href={a.href}>
-            <div className="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-3 hover:shadow-md hover:border-gray-200 transition-all group">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:a.color+'15'}}><Icon size={16} style={{color:a.color}}/></div>
-              <span className="text-[13px] font-semibold text-gray-700 group-hover:text-gray-900">{a.label}</span>
-              <ArrowRight size={13} className="ml-auto text-gray-300 group-hover:text-gray-500"/>
+            <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-5 flex items-center gap-3 hover:shadow-md hover:border-gray-200 transition-all group">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{background:a.color+'15'}}><Icon size={18} style={{color:a.color}}/></div>
+              <span className="text-[13px] font-bold tracking-wide text-gray-700 group-hover:text-gray-900">{a.label}</span>
+              <ArrowRight size={14} className="ml-auto text-gray-300 group-hover:text-gray-500 transition-transform group-hover:translate-x-1"/>
             </div>
           </Link>
         )})}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-6">
         {([
           {icon:AlertCircle,color:'#D97706',bg:'#FFFBEB',text:'3 products low on stock',       href:'/admin/inventory'},
           {icon:Clock,      color:'#7C3AED',bg:'#F5F3FF',text:'2 orders pending confirmation', href:'/admin/orders'},
           {icon:Truck,      color:'#0891B2',bg:'#ECFEFF',text:'1 purchase order to receive',   href:'/admin/purchase'},
         ] as const).map(a=>{const Icon=a.icon;return(
           <Link key={a.text} href={a.href}>
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all hover:shadow-sm" style={{background:a.bg,borderColor:a.color+'30'}}>
-              <Icon size={15} style={{color:a.color}} className="shrink-0"/>
-              <p className="text-[12px] font-medium" style={{color:a.color}}>{a.text}</p>
-              <ArrowRight size={11} className="ml-auto shrink-0" style={{color:a.color}}/>
+            <div className="flex items-center gap-3 px-5 py-4 rounded-2xl border transition-all hover:shadow-sm" style={{background:a.bg,borderColor:a.color+'30'}}>
+              <Icon size={16} style={{color:a.color}} className="shrink-0"/>
+              <p className="text-[12px] font-bold" style={{color:a.color}}>{a.text}</p>
+              <ArrowRight size={12} className="ml-auto shrink-0" style={{color:a.color}}/>
             </div>
           </Link>
         )})}

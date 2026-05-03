@@ -3,11 +3,12 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, ChevronLeft, ChevronRight, Star, Truck, RotateCcw, ShieldCheck, Headphones } from 'lucide-react'
+import { ArrowRight, ChevronLeft, ChevronRight, Star, Truck, RotateCcw, ShieldCheck, Headphones, Search } from 'lucide-react'
 import ProductCard from '@/components/store/ProductCard'
 import type { Product } from '@/types'
 
-const BRAND = '#C2185B'
+const BRAND = '#D81B60'
+const BRAND_GRADIENT = 'linear-gradient(135deg, #D81B60, #F06292)'
 
 /* ── All products ──────────────────────────────────────────── */
 const ALL_PRODUCTS: Product[] = [
@@ -67,33 +68,33 @@ function CategorySection({ title, products, href }: { title: string; products: P
   const canNext = start + visible < products.length
 
   return (
-    <section className="py-10 border-t border-gray-100">
+    <section className="py-16 border-t border-gray-100">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <h2 className="text-[22px] font-bold text-gray-900 tracking-tight">{title}</h2>
-            <div className="h-px w-10 bg-[#C2185B]" />
+        <div className="flex items-center justify-between mb-10">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-[28px] font-display font-light text-gray-900 tracking-tight">{title}</h2>
+            <div className="h-0.5 w-10 bg-brand" />
           </div>
-          <div className="flex items-center gap-3">
-            <Link href={href} className="text-[12px] font-semibold text-[#C2185B] hover:underline underline-offset-2 flex items-center gap-1">
-              View All <ArrowRight size={12} />
+          <div className="flex items-center gap-6">
+            <Link href={href} className="text-[11px] font-bold tracking-widest uppercase text-gray-900 hover:text-brand flex items-center gap-1.5 transition-colors pb-0.5 border-b border-transparent hover:border-brand">
+              View All <ArrowRight size={14} />
             </Link>
-            <div className="flex gap-1">
+            <div className="flex gap-2">
               <button onClick={() => setStart(v => Math.max(0, v - 1))} disabled={!canPrev}
-                className={`w-8 h-8 border flex items-center justify-center transition-colors ${canPrev ? 'border-gray-300 text-gray-600 hover:border-[#C2185B] hover:text-[#C2185B]' : 'border-gray-100 text-gray-300 cursor-not-allowed'}`}>
-                <ChevronLeft size={14} />
+                className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${canPrev ? 'border-gray-300 text-gray-600 hover:border-gray-900 hover:text-gray-900' : 'border-gray-100 text-gray-300 cursor-not-allowed'}`}>
+                <ChevronLeft size={18} strokeWidth={1.5} />
               </button>
               <button onClick={() => setStart(v => Math.min(products.length - visible, v + 1))} disabled={!canNext}
-                className={`w-8 h-8 border flex items-center justify-center transition-colors ${canNext ? 'border-gray-300 text-gray-600 hover:border-[#C2185B] hover:text-[#C2185B]' : 'border-gray-100 text-gray-300 cursor-not-allowed'}`}>
-                <ChevronRight size={14} />
+                className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${canNext ? 'border-gray-300 text-gray-600 hover:border-gray-900 hover:text-gray-900' : 'border-gray-100 text-gray-300 cursor-not-allowed'}`}>
+                <ChevronRight size={18} strokeWidth={1.5} />
               </button>
             </div>
           </div>
         </div>
 
         {/* Products */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {products.slice(start, start + visible).map((p, i) => (
             <motion.div key={p.id}
               initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }}
@@ -109,11 +110,17 @@ function CategorySection({ title, products, href }: { title: string; products: P
 
 export default function HomePage() {
   const [slide, setSlide] = useState(0)
+  const [query, setQuery] = useState('')
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (query.trim()) window.location.href = `/products?search=${encodeURIComponent(query.trim())}`
+  }
 
   const resetTimer = () => {
     if (timerRef.current) clearInterval(timerRef.current)
-    timerRef.current = setInterval(() => setSlide(v => (v + 1) % SLIDES.length), 6000)
+    timerRef.current = setInterval(() => setSlide(v => (v + 1) % SLIDES.length), 7000)
   }
   useEffect(() => { resetTimer(); return () => { if (timerRef.current) clearInterval(timerRef.current) } }, [])
   const goTo = (i: number) => { setSlide(i); resetTimer() }
@@ -123,40 +130,41 @@ export default function HomePage() {
   return (
     <main className="bg-white">
 
+
+
       {/* ══════════════ HERO ══════════════ */}
-      <section className="relative w-full overflow-hidden bg-gray-100" style={{ height: 'clamp(340px, 52vw, 600px)' }}>
+      <section className="relative w-full overflow-hidden bg-[#FAFAFA]" style={{ height: 'clamp(400px, 55vw, 680px)' }}>
         <AnimatePresence mode="wait">
           <motion.div key={slide} className="absolute inset-0"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.7 }}>
+            initial={{ opacity: 0, scale: 1.02 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1.2, ease: "easeOut" }}>
             <Image src={s.img} alt="Hero" fill className="object-cover object-top" priority sizes="100vw" />
-            {/* Light gradient so right-side text is readable on any image */}
-            <div className="absolute inset-0 bg-gradient-to-l from-white/85 via-white/40 to-white/0" />
+            {/* Elegant gradient overlay for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/5 via-transparent to-black/30" />
           </motion.div>
         </AnimatePresence>
 
-        {/* Text — right aligned (Floret style) */}
-        <div className="absolute inset-0 flex items-center justify-end px-8 sm:px-16">
+        {/* Text — clean editorial style */}
+        <div className="absolute inset-0 flex items-center justify-end px-8 sm:px-20 max-w-[1400px] mx-auto">
           <AnimatePresence mode="wait">
             <motion.div key={`t-${slide}`}
-              initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0 }} transition={{ duration: 0.5, delay: 0.15 }}
-              className="text-right max-w-[420px]">
-              <p className="text-[11px] font-semibold tracking-[.2em] uppercase text-gray-500 mb-3">{s.tag}</p>
-              <h1 className="font-display font-black text-gray-900 leading-[1.1] mb-2"
-                style={{ fontSize: 'clamp(1.8rem, 4vw, 3.4rem)' }}>
-                <span className="italic font-light">{s.line1}</span>
+              initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }} transition={{ duration: 0.7, delay: 0.2 }}
+              className="text-right max-w-[480px]">
+              <p className="inline-block mb-4 text-[11px] font-bold tracking-[.3em] uppercase text-white bg-black/20 backdrop-blur-md px-4 py-1.5 rounded-sm">{s.tag}</p>
+              <h1 className="font-display font-light text-white leading-[1.1] mb-2"
+                style={{ fontSize: 'clamp(2.4rem, 4.5vw, 4rem)' }}>
+                {s.line1}
               </h1>
-              <h1 className="font-display font-black leading-[1] mb-4"
-                style={{ fontSize: 'clamp(2rem, 4.5vw, 3.8rem)', color: BRAND }}>
+              <h1 className="font-display font-medium text-white leading-[1] mb-6"
+                style={{ fontSize: 'clamp(2.6rem, 5vw, 4.5rem)' }}>
                 {s.line2}
               </h1>
-              <p className="text-[14px] text-gray-600 mb-7 font-medium">{s.offer}</p>
+              <p className="text-[15px] text-white/90 mb-10 font-light tracking-wide">{s.offer}</p>
               <Link href={s.href}>
                 <motion.span
-                  className="inline-flex items-center gap-2 text-white text-[12px] font-bold tracking-widest uppercase px-8 py-4"
-                  style={{ background: '#1A3A5C' }}
-                  whileHover={{ opacity: 0.9 }} whileTap={{ scale: 0.97 }}>
-                  {s.cta}
+                  className="inline-flex items-center justify-center gap-3 text-gray-900 bg-white text-[11px] font-bold tracking-widest uppercase px-12 py-4 shadow-xl hover:bg-gray-900 hover:text-white transition-colors duration-300"
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  {s.cta} <ArrowRight size={14} />
                 </motion.span>
               </Link>
             </motion.div>
@@ -164,55 +172,29 @@ export default function HomePage() {
         </div>
 
         {/* Dots */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3">
           {SLIDES.map((_, i) => (
             <button key={i} onClick={() => goTo(i)}
-              className={`rounded-full transition-all duration-400 ${i === slide ? 'w-5 h-2 bg-[#C2185B]' : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'}`} />
+              className={`transition-all duration-500 rounded-full ${i === slide ? 'w-10 h-1 bg-white' : 'w-2 h-1 bg-white/40 hover:bg-white/70'}`} />
           ))}
         </div>
-
-        {/* Arrows */}
-        <button onClick={() => goTo((slide - 1 + SLIDES.length) % SLIDES.length)}
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/80 hover:bg-white shadow-sm flex items-center justify-center transition-colors">
-          <ChevronLeft size={18} className="text-gray-700" />
-        </button>
-        <button onClick={() => goTo((slide + 1) % SLIDES.length)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/80 hover:bg-white shadow-sm flex items-center justify-center transition-colors">
-          <ChevronRight size={18} className="text-gray-700" />
-        </button>
       </section>
 
+
+
       {/* ══════════════ TRUST STRIP ══════════════ */}
-      <div className="border-y border-gray-100 bg-gray-50">
+      <div className="bg-white border-b border-gray-100 relative z-10">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 grid grid-cols-2 lg:grid-cols-4 divide-x divide-gray-100">
           {TRUST.map(({ icon: Icon, label, sub }) => (
-            <div key={label} className="flex items-center gap-3 px-4 sm:px-6 py-4">
-              <Icon size={18} strokeWidth={1.5} style={{ color: BRAND }} className="shrink-0" />
+            <div key={label} className="flex items-center justify-center gap-4 px-4 sm:px-8 py-8 group cursor-default">
+              <div className="text-gray-900 group-hover:text-brand transition-colors">
+                <Icon size={24} strokeWidth={1} />
+              </div>
               <div>
-                <p className="text-[12px] font-semibold text-gray-800">{label}</p>
-                <p className="text-[11px] text-gray-400">{sub}</p>
+                <p className="text-[12px] font-bold text-gray-900 tracking-wide uppercase mb-0.5">{label}</p>
+                <p className="text-[11px] text-gray-500">{sub}</p>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ══════════════ QUICK CATEGORY PILLS ══════════════ */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-8">
-        <div className="flex gap-3 flex-wrap">
-          {[
-            { label:'New In',     href:'/products?badge=New',         active: true },
-            { label:'Best Sellers',href:'/products?sort=best',        active: false },
-            { label:'Dresses',    href:'/products?category=Dress',    active: false },
-            { label:'Bags',       href:'/products?category=Bag',      active: false },
-            { label:'Jewelry',    href:'/products?category=Jewelry',  active: false },
-            { label:'Accessories',href:'/products?category=Accessory',active: false },
-            { label:'Sale',       href:'/products?sale=true',         active: false },
-          ].map(({ label, href }) => (
-            <Link key={label} href={href}
-              className="px-5 py-2 border border-gray-200 rounded-full text-[13px] font-medium text-gray-600 hover:border-[#C2185B] hover:text-[#C2185B] transition-colors">
-              {label}
-            </Link>
           ))}
         </div>
       </div>
@@ -223,22 +205,20 @@ export default function HomePage() {
       <CategorySection title="Dresses" products={BY_CAT('Dress')} href="/products?category=Dress" />
 
       {/* Mid banner */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-4">
-        <div className="relative overflow-hidden rounded-none" style={{ minHeight: 160, background: '#FFF0F4' }}>
-          <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4 px-8 sm:px-14 py-8">
-            <div>
-              <p className="text-[10px] font-bold tracking-[.25em] uppercase mb-1" style={{ color: BRAND }}>Limited Time</p>
-              <h3 className="font-display text-[26px] sm:text-[32px] font-black text-gray-900 leading-tight">
-                Eid Edit '25 — Up to <span style={{ color: BRAND }}>50% OFF</span>
-              </h3>
-            </div>
-            <Link href="/products">
-              <span className="inline-flex items-center gap-2 text-white text-[12px] font-bold tracking-widest uppercase px-8 py-4 hover:opacity-90 transition-opacity"
-                style={{ background: BRAND }}>
-                SHOP NOW <ArrowRight size={13} />
-              </span>
-            </Link>
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-8">
+        <div className="relative overflow-hidden bg-[#FAFAFA] border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-8 px-12 sm:px-20 py-16">
+          <div className="max-w-xl">
+            <p className="text-[11px] font-bold tracking-[.3em] uppercase mb-4 text-brand">Limited Time</p>
+            <h3 className="font-display text-[32px] sm:text-[40px] font-light text-gray-900 leading-[1.1] mb-2">
+              Eid Edit '25
+            </h3>
+            <p className="text-[16px] text-gray-600 font-light mb-0">Discover festive elegance. Up to <span className="font-medium text-brand">50% OFF</span> selected styles.</p>
           </div>
+          <Link href="/products">
+            <span className="inline-flex items-center gap-3 text-white bg-gray-900 text-[11px] font-bold tracking-widest uppercase px-10 py-4 hover:bg-brand transition-colors duration-300">
+              SHOP NOW <ArrowRight size={14} />
+            </span>
+          </Link>
         </div>
       </div>
 
@@ -249,21 +229,21 @@ export default function HomePage() {
       <CategorySection title="Jewelry" products={BY_CAT('Jewelry')} href="/products?category=Jewelry" />
 
       {/* Mid banner 2 */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {[
-            { bg:'#E8F4FD', accent:'#1565C0', tag:'Best Sellers', title:'Bags from ৳1,999', href:'/products?category=Bag' },
-            { bg:'#FFF3E0', accent:'#E65100', tag:'Flash Sale',   title:'Up to 40% Off', href:'/products?sale=true' },
+            { bg:'#FAFAFA', accent:'#0F172A', tag:'Best Sellers', title:'Bags from ৳1,999', href:'/products?category=Bag' },
+            { bg:'#FFF5F7', accent:'#D81B60', tag:'Flash Sale',   title:'Up to 40% Off', href:'/products?sale=true' },
           ].map(({ bg, accent, tag, title, href }) => (
             <Link key={title} href={href}>
-              <div className="flex items-center justify-between px-8 py-7 transition-opacity hover:opacity-90" style={{ background: bg }}>
+              <div className="flex items-center justify-between px-12 py-12 transition-all hover:bg-gray-50 group border border-gray-100" style={{ background: bg }}>
                 <div>
-                  <p className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: accent }}>{tag}</p>
-                  <h4 className="font-display text-[22px] font-black text-gray-900">{title}</h4>
+                  <p className="text-[10px] font-bold tracking-[.25em] uppercase mb-3" style={{ color: accent }}>{tag}</p>
+                  <h4 className="font-display text-[26px] font-light text-gray-900">{title}</h4>
                 </div>
-                <span className="text-[12px] font-bold tracking-widest uppercase flex items-center gap-1" style={{ color: accent }}>
-                  SHOP <ArrowRight size={13} />
-                </span>
+                <div className="w-12 h-12 rounded-full border border-gray-200 bg-white flex items-center justify-center group-hover:border-gray-900 group-hover:bg-gray-900 group-hover:text-white transition-all text-gray-900">
+                  <ArrowRight size={18} strokeWidth={1.5} />
+                </div>
               </div>
             </Link>
           ))}
@@ -274,24 +254,24 @@ export default function HomePage() {
       <CategorySection title="Accessories" products={BY_CAT('Accessory')} href="/products?category=Accessory" />
 
       {/* ══════════════ RATINGS STRIP ══════════════ */}
-      <div className="border-y border-gray-100 bg-gray-50 py-8 mt-4">
+      <div className="border-t border-gray-100 bg-white py-16 mt-8">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 text-center divide-x divide-gray-100">
             {[
               { val:'4.8', label:'Average Rating', sub:'Based on 2,400+ reviews' },
               { val:'50K+', label:'Happy Customers', sub:'Across Bangladesh' },
               { val:'500+', label:'Products', sub:'New styles every week' },
               { val:'Free', label:'Delivery', sub:'On orders above ৳2,000' },
-            ].map(({ val, label, sub }) => (
-              <div key={label}>
-                <p className="font-display text-3xl font-black text-gray-900 mb-1">{val}</p>
+            ].map(({ val, label, sub }, i) => (
+              <div key={label} className={i === 0 ? '' : 'pl-8'}>
+                <p className="font-display text-4xl font-light text-gray-900 mb-2">{val}</p>
                 {val === '4.8' && (
-                  <div className="flex justify-center gap-0.5 mb-1">
-                    {[1,2,3,4,5].map(n => <Star key={n} size={12} className="fill-amber-400 text-amber-400" />)}
+                  <div className="flex justify-center gap-1 mb-2">
+                    {[1,2,3,4,5].map(n => <Star key={n} size={14} className="fill-brand text-brand" />)}
                   </div>
                 )}
-                <p className="text-[13px] font-semibold text-gray-700">{label}</p>
-                <p className="text-[11px] text-gray-400 mt-0.5">{sub}</p>
+                <p className="text-[12px] font-bold tracking-widest uppercase text-gray-900 mb-1">{label}</p>
+                <p className="text-[12px] text-gray-500 font-light">{sub}</p>
               </div>
             ))}
           </div>
@@ -299,16 +279,16 @@ export default function HomePage() {
       </div>
 
       {/* ══════════════ NEWSLETTER ══════════════ */}
-      <section className="bg-[#111]">
-        <div className="max-w-[480px] mx-auto px-6 py-16 text-center">
-          <p className="text-[10px] font-bold tracking-[.3em] uppercase mb-3" style={{ color: BRAND }}>Stay Connected</p>
-          <h3 className="font-display text-2xl font-black text-white mb-2">Get the latest drops first.</h3>
-          <p className="text-[12px] text-white/40 mb-7">New arrivals, exclusive offers & style edits — straight to your inbox.</p>
-          <form className="flex gap-0 max-w-sm mx-auto" onSubmit={e => e.preventDefault()}>
-            <input type="email" placeholder="Enter your email"
-              className="flex-1 px-4 py-3 text-[13px] bg-white/8 border border-white/10 text-white placeholder-white/30 outline-none focus:border-white/30 transition-colors" />
-            <button type="submit" className="px-5 py-3 text-white text-[11px] font-bold tracking-widest uppercase shrink-0 transition-colors hover:opacity-90" style={{ background: BRAND }}>
-              JOIN
+      <section className="bg-gray-900 py-24 px-6 text-center">
+        <div className="max-w-[500px] mx-auto">
+          <p className="text-[11px] font-bold tracking-[.3em] uppercase mb-4 text-brand">Stay Connected</p>
+          <h3 className="font-display text-4xl font-light text-white mb-4">The Insider Edit</h3>
+          <p className="text-[14px] text-gray-400 mb-10 font-light leading-relaxed">Join our mailing list to receive exclusive early access to new collections, private sales, and style inspiration.</p>
+          <form className="flex border-b border-gray-700 focus-within:border-white transition-colors pb-2" onSubmit={e => e.preventDefault()}>
+            <input type="email" placeholder="Enter your email address"
+              className="flex-1 bg-transparent text-[13px] text-white placeholder-gray-500 outline-none px-2" />
+            <button type="submit" className="text-[11px] font-bold tracking-widest uppercase text-white hover:text-brand transition-colors px-4">
+              Subscribe
             </button>
           </form>
         </div>
