@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
-export type CourierSlug = 'steadfast' | 'pathao' | 'paperfly' | 'redx' | 'ecourier' | 'sundarban'
+export type CourierSlug = 'steadfast' | 'pathao' | 'paperfly' | 'redx' | 'ecourier' | 'sundarban' | 'carrybee'
 
 export interface CourierConfig {
   enabled:    boolean
@@ -53,6 +53,7 @@ const DEFAULTS: Record<CourierSlug, CourierConfig> = {
   redx:      { enabled: false, apiKey: '', apiSecret: '', storeId: '', baseUrl: 'https://openapi.redx.com.bd' },
   ecourier:  { enabled: false, apiKey: '', apiSecret: '', storeId: '', baseUrl: 'https://ecourier.com.bd/api' },
   sundarban: { enabled: false, apiKey: '', apiSecret: '', storeId: '', baseUrl: '' },
+  carrybee:  { enabled: false, apiKey: '', apiSecret: '', storeId: '', baseUrl: 'https://carrybee.com.bd/api/v1' },
 }
 
 export const useCourierStore = create<CourierStore>()(

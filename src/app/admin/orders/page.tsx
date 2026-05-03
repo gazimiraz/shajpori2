@@ -13,6 +13,7 @@ const COURIER_OPTIONS: { slug: CourierSlug; name: string; logo: string }[] = [
   { slug:'redx',      name:'RedX',              logo:'🔴' },
   { slug:'ecourier',  name:'eCourier',          logo:'📦' },
   { slug:'sundarban', name:'Sundarban Courier', logo:'🏢' },
+  { slug:'carrybee',  name:'Carrybee',          logo:'🐝' },
 ]
 
 const MOCK_ORDERS = [

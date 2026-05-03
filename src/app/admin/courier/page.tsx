@@ -21,7 +21,8 @@ const COURIERS: {
   { slug:'paperfly',  name:'Paperfly',          logo:'✈️', color:'#1565C0', trackUrl:'https://paperfly.com.bd/',   hasApi:true,  fields:['apiKey','apiSecret'] },
   { slug:'redx',      name:'RedX',              logo:'🔴', color:'#C62828', trackUrl:'https://redx.com.bd/track/',hasApi:true,  fields:['apiKey','storeId'] },
   { slug:'ecourier',  name:'eCourier',          logo:'📦', color:'#2E7D32', trackUrl:'https://ecourier.com.bd/',  hasApi:true,  fields:['apiKey','apiSecret','storeId'] },
-  { slug:'sundarban', name:'Sundarban Courier', logo:'🏢', color:'#6A1B9A', trackUrl:'',                          hasApi:false, fields:[] },
+  { slug:'sundarban', name:'Sundarban Courier', logo:'🏢', color:'#6A1B9A', trackUrl:'',                              hasApi:false, fields:[] },
+  { slug:'carrybee',  name:'Carrybee',          logo:'🐝', color:'#F59E0B', trackUrl:'https://carrybee.com.bd/track/', hasApi:true,  fields:['apiKey','apiSecret'] },
 ]
 
 /* ── Status metadata ────────────────────────────────────────────────────── */
