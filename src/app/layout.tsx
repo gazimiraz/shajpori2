@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Playfair_Display, DM_Sans } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import FaviconSync from '@/components/layout/FaviconSync'
+import TrackingScripts from '@/components/layout/TrackingScripts'
 import './globals.css'
 
 const playfair = Playfair_Display({ subsets:['latin'], variable:'--font-display', display:'swap' })
@@ -17,6 +18,7 @@ export default function RootLayout({ children }:{ children: React.ReactNode }) {
     <html lang="en" className={`${playfair.variable} ${dmSans.variable}`}>
       <body className="font-body bg-white text-[#111] antialiased" suppressHydrationWarning>
         <FaviconSync />
+        <TrackingScripts />
         {children}
         <Toaster position="bottom-center" toastOptions={{ style:{ background:'#1A1A2E', color:'#fff', borderRadius:'50px', padding:'12px 24px', fontFamily:'var(--font-body)', fontSize:'14px' }, success:{ iconTheme:{ primary:'#FF69B4', secondary:'#fff' } } }} />
       </body>

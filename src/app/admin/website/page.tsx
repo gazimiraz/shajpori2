@@ -4,11 +4,11 @@ import { motion, AnimatePresence, Reorder } from 'framer-motion'
 import {
   Megaphone, Layout, ImageIcon, Layers, AlignLeft, Save,
   Plus, Trash2, GripVertical, Eye, EyeOff, ChevronDown, ChevronUp,
-  Facebook, Instagram, Youtube, Phone, Globe
+  Facebook, Instagram, Youtube, Phone, BarChart2, Code, CheckCircle2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import {
-  useWebsiteStore, type HeroSlide, type FooterColumn
+  useWebsiteStore, type HeroSlide, type FooterColumn, type TrackingSettings
 } from '@/lib/websiteStore'
 
 const BRAND = '#D81B60'
@@ -51,11 +51,12 @@ function SaveBar({ onSave }: { onSave: () => void }) {
 
 /* ── Tabs ───────────────────────────────────────────────────────────────── */
 const TABS = [
-  { id: 'announcement', label: 'Announcement Bar', icon: Megaphone },
-  { id: 'header',       label: 'Header',           icon: Layout    },
-  { id: 'slider',       label: 'Hero Slider',      icon: ImageIcon },
-  { id: 'blocks',       label: 'Content Blocks',   icon: Layers    },
-  { id: 'footer',       label: 'Footer',           icon: AlignLeft },
+  { id: 'announcement', label: 'Announcement Bar', icon: Megaphone  },
+  { id: 'header',       label: 'Header',           icon: Layout     },
+  { id: 'slider',       label: 'Hero Slider',      icon: ImageIcon  },
+  { id: 'blocks',       label: 'Content Blocks',   icon: Layers     },
+  { id: 'footer',       label: 'Footer',           icon: AlignLeft  },
+  { id: 'tracking',     label: 'Tracking & Analytics', icon: BarChart2 },
 ]
 
 /* ════════════════════════════════════════════════════════════════════════ */
@@ -91,12 +92,12 @@ export default function WebsitePage() {
           initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
           transition={{ duration: 0.15 }}>
 
-          {/* ── ANNOUNCEMENT BAR ── */}
           {tab === 'announcement' && <AnnouncementTab />}
           {tab === 'header'       && <HeaderTab />}
           {tab === 'slider'       && <SliderTab />}
           {tab === 'blocks'       && <BlocksTab />}
           {tab === 'footer'       && <FooterTab />}
+          {tab === 'tracking'     && <TrackingTab />}
         </motion.div>
       </AnimatePresence>
     </div>
@@ -499,6 +500,107 @@ function FooterTab() {
               </button>
             </div>
           ))}
+        </div>
+      </div>
+
+      <SaveBar onSave={save} />
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TRACKING & ANALYTICS TAB
+══════════════════════════════════════════════════════════════════ */
+const PIXELS = [
+  { key: 'ga4'      as const, name: 'Google Analytics 4',    logo: '📊', placeholder: 'G-XXXXXXXXXX',                         hint: 'GA4 → Admin → Data Streams → Measurement ID',     color: '#F57C00' },
+  { key: 'gtm'      as const, name: 'Google Tag Manager',    logo: '🏷️', placeholder: 'GTM-XXXXXXX',                          hint: 'GTM → Admin → Container ID',                      color: '#1A73E8' },
+  { key: 'fbPixel'  as const, name: 'Facebook / Meta Pixel', logo: '📘', placeholder: '1234567890123456',                     hint: 'Meta Business Suite → Events Manager → Pixel ID', color: '#1877F2' },
+  { key: 'tiktok'   as const, name: 'TikTok Pixel',          logo: '🎵', placeholder: 'XXXXXXXXXXXXXXXXXX',                   hint: 'TikTok Ads Manager → Assets → Events → Pixel',    color: '#010101' },
+  { key: 'snapchat' as const, name: 'Snapchat Pixel',        logo: '👻', placeholder: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', hint: 'Snapchat Ads Manager → Assets → Snap Pixel',      color: '#FFFC00' },
+  { key: 'twitter'  as const, name: 'Twitter / X Pixel',     logo: '🐦', placeholder: 'xxxxxxx',                             hint: 'X Ads → Tools → Conversion tracking → Pixel ID',  color: '#000000' },
+  { key: 'hotjar'   as const, name: 'Hotjar',                logo: '🔥', placeholder: '1234567',                             hint: 'Hotjar → Settings → Tracking Code → Site ID',     color: '#FF3C00' },
+  { key: 'clarity'  as const, name: 'Microsoft Clarity',     logo: '🔍', placeholder: 'xxxxxxxxxx',                          hint: 'Clarity → Settings → Overview → Project ID',      color: '#0078D4' },
+]
+
+function TrackingTab() {
+  const { tracking, setTracking } = useWebsiteStore()
+  const [form, setForm] = useState<TrackingSettings>({ ...tracking })
+
+  function setPixel(key: keyof Omit<TrackingSettings,'customHead'|'customBody'>, field: 'enabled'|'id', val: boolean | string) {
+    setForm(f => ({ ...f, [key]: { ...(f[key] as object), [field]: val } }))
+  }
+
+  function save() { setTracking(form); toast.success('Tracking settings saved') }
+
+  const activeCount = PIXELS.filter(p => (form[p.key] as { enabled: boolean }).enabled).length
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-2xl border border-gray-100 px-5 py-4 flex items-center justify-between">
+        <div>
+          <p className="text-[14px] font-bold text-gray-900">Tracking & Analytics</p>
+          <p className="text-[12px] text-gray-400 mt-0.5">{activeCount} pixel{activeCount !== 1 ? 's' : ''} active — scripts inject automatically into your storefront</p>
+        </div>
+        {activeCount > 0 && (
+          <span className="flex items-center gap-1.5 text-[12px] font-semibold text-green-600 bg-green-50 border border-green-200 px-3 py-1.5 rounded-xl">
+            <CheckCircle2 size={13} /> {activeCount} Active
+          </span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 gap-3">
+        {PIXELS.map(({ key, name, logo, placeholder, hint, color }) => {
+          const pixel = form[key] as { enabled: boolean; id: string }
+          return (
+            <div key={key} className={`bg-white rounded-2xl border transition-all ${pixel.enabled ? 'border-green-200 shadow-sm' : 'border-gray-100'}`}>
+              <div className="flex items-center gap-4 px-5 py-4">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0 bg-gray-50 border border-gray-100">{logo}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-[13px] font-bold text-gray-900">{name}</p>
+                    {pixel.enabled && pixel.id && <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">LIVE</span>}
+                    {pixel.enabled && !pixel.id && <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">ID MISSING</span>}
+                  </div>
+                  {pixel.enabled && pixel.id
+                    ? <p className="text-[11px] text-gray-400 font-mono mt-0.5 truncate">{pixel.id}</p>
+                    : <p className="text-[11px] text-gray-400 mt-0.5">{hint}</p>}
+                </div>
+                <button onClick={() => setPixel(key, 'enabled', !pixel.enabled)}
+                  className="w-11 h-6 rounded-full relative shrink-0 transition-colors"
+                  style={{ background: pixel.enabled ? color : '#E5E7EB' }}>
+                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${pixel.enabled ? 'left-6' : 'left-1'}`} />
+                </button>
+              </div>
+              {pixel.enabled && (
+                <div className="px-5 pb-4 border-t border-gray-50">
+                  <div className="mt-3">
+                    <label className="block text-[11px] font-semibold text-gray-500 mb-1.5">{name} — Pixel / Measurement ID</label>
+                    <Input value={pixel.id} placeholder={placeholder} onChange={e => setPixel(key, 'id', e.target.value)} className="font-mono text-[13px]" />
+                    <p className="text-[11px] text-gray-400 mt-1.5">{hint}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-5">
+        <div className="flex items-center gap-2">
+          <Code size={16} className="text-gray-400" />
+          <p className="text-[14px] font-bold text-gray-900">Custom Code Injection</p>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 mb-1.5">Head Scripts <span className="font-normal text-gray-400">(inside &lt;head&gt;)</span></label>
+          <textarea value={form.customHead} rows={4} placeholder="<!-- <script> or <meta> tags -->"
+            onChange={e => setForm(f => ({ ...f, customHead: e.target.value }))}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-[12px] font-mono focus:outline-none focus:ring-2 focus:ring-pink-200 resize-none bg-gray-50" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 mb-1.5">Body Scripts <span className="font-normal text-gray-400">(after &lt;body&gt; opens)</span></label>
+          <textarea value={form.customBody} rows={4} placeholder="<!-- live chat widgets, noscript tags -->"
+            onChange={e => setForm(f => ({ ...f, customBody: e.target.value }))}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-[12px] font-mono focus:outline-none focus:ring-2 focus:ring-pink-200 resize-none bg-gray-50" />
         </div>
       </div>
 

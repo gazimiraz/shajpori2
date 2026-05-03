@@ -2,6 +2,25 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
+export interface TrackingPixel {
+  enabled: boolean
+  id:      string
+}
+
+export interface TrackingSettings {
+  ga4:       TrackingPixel   // Google Analytics 4
+  gtm:       TrackingPixel   // Google Tag Manager
+  fbPixel:   TrackingPixel   // Facebook / Meta Pixel
+  tiktok:    TrackingPixel   // TikTok Pixel
+  snapchat:  TrackingPixel   // Snapchat Pixel
+  twitter:   TrackingPixel   // Twitter / X Pixel
+  hotjar:    TrackingPixel   // Hotjar
+  clarity:   TrackingPixel   // Microsoft Clarity
+  customHead: string          // Raw <script> injected in <head>
+  customBody: string          // Raw <script> injected after <body>
+}
+
+
 export interface AnnouncementSettings {
   enabled:     boolean
   text:        string
@@ -62,6 +81,7 @@ interface WebsiteStore {
   slides:       HeroSlide[]
   blocks:       ContentBlock[]
   footer:       FooterSettings
+  tracking:     TrackingSettings
 
   setAnnouncement: (s: AnnouncementSettings) => void
   setHeader:       (s: HeaderSettings)       => void
@@ -72,6 +92,20 @@ interface WebsiteStore {
   setBlocks:       (b: ContentBlock[])       => void
   toggleBlock:     (id: string)              => void
   setFooter:       (f: FooterSettings)       => void
+  setTracking:     (t: TrackingSettings)     => void
+}
+
+const DEFAULT_TRACKING: TrackingSettings = {
+  ga4:        { enabled: false, id: '' },
+  gtm:        { enabled: false, id: '' },
+  fbPixel:    { enabled: false, id: '' },
+  tiktok:     { enabled: false, id: '' },
+  snapchat:   { enabled: false, id: '' },
+  twitter:    { enabled: false, id: '' },
+  hotjar:     { enabled: false, id: '' },
+  clarity:    { enabled: false, id: '' },
+  customHead: '',
+  customBody: '',
 }
 
 const DEFAULT_SLIDES: HeroSlide[] = [
@@ -137,9 +171,10 @@ export const useWebsiteStore = create<WebsiteStore>()(
         sticky: true, showSearch: true, showCart: true,
         bgColor: '#ffffff', textColor: '#111827',
       },
-      slides:  DEFAULT_SLIDES,
-      blocks:  DEFAULT_BLOCKS,
-      footer:  DEFAULT_FOOTER,
+      slides:   DEFAULT_SLIDES,
+      blocks:   DEFAULT_BLOCKS,
+      footer:   DEFAULT_FOOTER,
+      tracking: DEFAULT_TRACKING,
 
       setAnnouncement: (s) => set({ announcement: s }),
       setHeader:       (s) => set({ header: s }),
@@ -150,6 +185,7 @@ export const useWebsiteStore = create<WebsiteStore>()(
       setBlocks:       (b) => set({ blocks: b }),
       toggleBlock:     (id) => set(st => ({ blocks: st.blocks.map(b => b.id === id ? { ...b, enabled: !b.enabled } : b) })),
       setFooter:       (f) => set({ footer: f }),
+      setTracking:     (t) => set({ tracking: t }),
     }),
     { name: 'shajpori-website', storage: createJSONStorage(() => localStorage) }
   )
