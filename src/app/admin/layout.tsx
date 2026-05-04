@@ -9,8 +9,9 @@ import {
   Users, Bell, Settings, Cpu, ClipboardList,
   ChevronLeft, Store, ChevronRight, MonitorSmartphone, Tag,
   UserCog, ShieldCheck, LayoutGrid, Barcode, FileText,
-  Navigation, PieChart, Truck, Globe, Send
+  Navigation, PieChart, Truck, Globe, Send, CircleUser
 } from 'lucide-react'
+import { useAdminStore } from '@/lib/adminStore'
 
 const BRAND = '#D81B60'
 
@@ -51,8 +52,9 @@ const NAV = [
   {
     group: 'Administration',
     items: [
-      { href: '/admin/team',  label: 'Team Members', icon: UserCog },
-      { href: '/admin/roles', label: 'Roles',        icon: ShieldCheck },
+      { href: '/admin/team',    label: 'Team Members', icon: UserCog    },
+      { href: '/admin/roles',   label: 'Roles',        icon: ShieldCheck},
+      { href: '/admin/account', label: 'My Account',   icon: CircleUser },
     ],
   },
 ]
@@ -139,8 +141,9 @@ function ShortcutMenu() {
 }
 
 function SidebarNav({ collapsed, onNav }: { collapsed: boolean; onNav?: () => void }) {
-  const path   = usePathname()
-  const router = useRouter()
+  const path    = usePathname()
+  const router  = useRouter()
+  const profile = useAdminStore(s => s.profile)
 
   async function handleLogout() {
     await fetch('/api/admin/auth', { method: 'DELETE' })
@@ -209,10 +212,13 @@ function SidebarNav({ collapsed, onNav }: { collapsed: boolean; onNav?: () => vo
 
         {!collapsed && (
           <div className="flex items-center gap-3 px-2.5 py-2.5 mt-1 rounded-lg border border-gray-100 bg-gray-50">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold shrink-0" style={{ background: BRAND }}>A</div>
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold shrink-0"
+              style={{ background: profile.avatarColor }}>
+              {profile.avatarText || profile.name[0]?.toUpperCase() || 'A'}
+            </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[12px] font-semibold text-gray-700 truncate leading-none">Admin</p>
-              <p className="text-[10px] text-gray-400 mt-0.5 truncate">admin@shajpori.com</p>
+              <p className="text-[12px] font-semibold text-gray-700 truncate leading-none">{profile.name}</p>
+              <p className="text-[10px] text-gray-400 mt-0.5 truncate">{profile.email}</p>
             </div>
             <button onClick={handleLogout} className="text-gray-300 hover:text-red-400 transition-colors shrink-0">
               <LogOut size={13} />
@@ -225,7 +231,8 @@ function SidebarNav({ collapsed, onNav }: { collapsed: boolean; onNav?: () => vo
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const path = usePathname()
+  const path    = usePathname()
+  const profile = useAdminStore(s => s.profile)
   const [collapsed,  setCollapsed]  = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -290,8 +297,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full" style={{ background: BRAND }} />
             </button>
             <ShortcutMenu />
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-[12px] font-bold cursor-pointer"
-              style={{ background: BRAND }}>A</div>
+            <Link href="/admin/account"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-[12px] font-bold cursor-pointer hover:opacity-90 transition-opacity"
+              style={{ background: profile.avatarColor }}>
+              {profile.avatarText || profile.name[0]?.toUpperCase() || 'A'}
+            </Link>
           </div>
         </header>
 
