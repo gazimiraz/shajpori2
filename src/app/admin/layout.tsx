@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   LayoutDashboard, Package, ShoppingCart, Warehouse,
@@ -139,7 +139,14 @@ function ShortcutMenu() {
 }
 
 function SidebarNav({ collapsed, onNav }: { collapsed: boolean; onNav?: () => void }) {
-  const path = usePathname()
+  const path   = usePathname()
+  const router = useRouter()
+
+  async function handleLogout() {
+    await fetch('/api/admin/auth', { method: 'DELETE' })
+    router.push('/admin/login')
+    router.refresh()
+  }
   return (
     <div className="flex flex-col h-full">
       {/* Brand */}
@@ -207,7 +214,7 @@ function SidebarNav({ collapsed, onNav }: { collapsed: boolean; onNav?: () => vo
               <p className="text-[12px] font-semibold text-gray-700 truncate leading-none">Admin</p>
               <p className="text-[10px] text-gray-400 mt-0.5 truncate">admin@shajpori.com</p>
             </div>
-            <button className="text-gray-300 hover:text-red-400 transition-colors shrink-0">
+            <button onClick={handleLogout} className="text-gray-300 hover:text-red-400 transition-colors shrink-0">
               <LogOut size={13} />
             </button>
           </div>
