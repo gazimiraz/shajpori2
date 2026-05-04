@@ -20,14 +20,16 @@ export default function Navbar() {
   const [query,       setQuery]       = useState('')
   const [searchOpen,  setSearchOpen]  = useState(false)
   const [scrolled,    setScrolled]    = useState(false)
+  const [mounted,     setMounted]     = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
-  
+
   const { totalItems, toggleCart } = useCartStore()
   const count = totalItems()
   const { logoDataUrl, storeName } = useSettingsStore()
   const NAV = useMenuStore(s => s.items)
 
   useEffect(() => {
+    setMounted(true)
     const fn = () => setScrolled(window.scrollY > 4)
     window.addEventListener('scroll', fn, { passive: true })
     return () => window.removeEventListener('scroll', fn)
@@ -115,7 +117,7 @@ export default function Navbar() {
             <button onClick={toggleCart} className="flex flex-col items-center gap-1 group relative">
               <div className="w-10 h-10 rounded-full border border-gray-100 bg-white flex items-center justify-center text-[#FF66A3] group-hover:border-[#FF66A3]/30 group-hover:shadow-sm transition-all relative">
                 <ShoppingCart size={18} strokeWidth={2.2} className="fill-[#FF66A3] text-[#FF66A3]" />
-                {count > 0 && (
+                {mounted && count > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 bg-[#FF66A3] text-white text-[10px] font-bold min-w-[20px] h-[20px] px-1 rounded-full flex items-center justify-center leading-none border-2 border-white shadow-sm">
                     {count}
                   </span>
@@ -249,7 +251,7 @@ export default function Navbar() {
                   <button onClick={() => { toggleCart(); setMobileOpen(false) }}
                     className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gray-50 hover:bg-pink-50 text-[13px] font-semibold text-gray-700 hover:text-[#FF66A3] transition-colors relative">
                     <ShoppingCart size={16} /> Cart
-                    {count > 0 && (
+                    {mounted && count > 0 && (
                       <span className="absolute top-1.5 right-3 bg-[#FF66A3] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">{count}</span>
                     )}
                   </button>

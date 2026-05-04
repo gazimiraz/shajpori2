@@ -3,8 +3,8 @@ import { createBrowserClient as createSupabaseBrowserClient } from '@supabase/ss
 
 export const createBrowserClient = () =>
   createSupabaseBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL  ?? 'https://placeholder.supabase.co',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'placeholder-anon-key',
   )
 
 // Lazy singleton — only created on first use, never at module load time

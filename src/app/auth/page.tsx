@@ -1,6 +1,7 @@
 'use client'
-// src/app/(store)/auth/page.tsx
-import { useState } from 'react'
+export const dynamic = 'force-dynamic'
+
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from 'lucide-react'
 import { createBrowserClient } from '@/lib/supabase'
@@ -13,7 +14,9 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false)
   const [showPass, setShowPass] = useState(false)
   const [form, setForm] = useState({ email: '', password: '', full_name: '' })
-  const supabase = createBrowserClient()
+  const supabaseRef = useRef<ReturnType<typeof createBrowserClient> | null>(null)
+  if (!supabaseRef.current) supabaseRef.current = createBrowserClient()
+  const supabase = supabaseRef.current
   const router = useRouter()
 
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
