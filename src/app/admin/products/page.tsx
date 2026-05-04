@@ -49,7 +49,7 @@ function generateSKU(category: string, existing: MockProduct[]): string {
   const code = CAT_CODE[category] ?? 'XX'
   const same  = existing.filter(p => p.category === category)
   const seq   = String(same.length + 1).padStart(3, '0')
-  return `SJP-${code}-${seq}`
+  return `Shaj-${code}-${seq}`
 }
 
 function generateBarcode(): string {
@@ -61,12 +61,12 @@ function generateBarcode(): string {
   return body + check
 }
 const MOCK: MockProduct[] = [
-  { id:'p1', sku:'SJP-DR-001', barcode:'8801234567890', name:'Bloom Garden Midi Dress', category:'Dress', price:3200, cost_price:1400, compare_at_price:3900, total_stock:45, total_sold:12, badge:'New', is_active:true, is_featured:true, colors:['Blush Pink','Sage Green','Sky Blue'], available_sizes:['XS','S','M','L','XL'], materials:['Chiffon','Cotton'], tags:['floral','summer','midi'], short_description:'Floral chiffon midi with puff sleeves.', description:'', image_urls:[] },
-  { id:'p2', sku:'SJP-DR-002', barcode:'8801234567891', name:'Sunset Ruffle Maxi Dress', category:'Dress', price:4100, cost_price:1800, compare_at_price:5200, total_stock:24, total_sold:8, badge:'Trending', is_active:true, is_featured:true, colors:['Coral Orange','Deep Burgundy','Ivory White'], available_sizes:['S','M','L'], materials:['Satin'], tags:['formal','maxi','evening'], short_description:'Satin ruffle maxi for formal occasions.', description:'', image_urls:[] },
-  { id:'p3', sku:'SJP-BG-001', barcode:'8801234567892', name:'Pearl Quilted Shoulder Bag', category:'Bag', price:5800, cost_price:2200, compare_at_price:0, total_stock:18, total_sold:5, badge:'New', is_active:true, is_featured:true, colors:['Ivory White','Black Onyx','Dusty Rose'], available_sizes:['One Size'], materials:['Vegan Leather'], tags:['quilted','shoulder','pearl'], short_description:'Quilted vegan leather shoulder bag.', description:'', image_urls:[] },
-  { id:'p4', sku:'SJP-JWL-001', barcode:'8801234567893', name:'Pearl Drop Earrings', category:'Jewelry', price:890, cost_price:290, compare_at_price:1100, total_stock:60, total_sold:38, badge:'Popular', is_active:true, is_featured:false, colors:['Gold','Silver'], available_sizes:['One Size'], materials:[], tags:['pearl','earrings','gold'], short_description:'Freshwater pearl drops with 18k gold finish.', description:'', image_urls:[] },
-  { id:'p5', sku:'SJP-AC-001', barcode:'8801234567894', name:'Silk Scarf — Floral Print', category:'Accessory', price:1800, cost_price:600, compare_at_price:2200, total_stock:40, total_sold:10, badge:'New', is_active:true, is_featured:false, colors:['Multicolor','Blush Pink'], available_sizes:['One Size'], materials:['Silk'], tags:['scarf','floral','silk'], short_description:'100% silk twill scarf.', description:'', image_urls:[] },
-  { id:'p6', sku:'SJP-DR-003', barcode:'8801234567895', name:'Cotton Candy Mini Dress', category:'Dress', price:2400, cost_price:950, compare_at_price:2900, total_stock:88, total_sold:22, badge:'Sale', is_active:false, is_featured:false, colors:['Cotton Candy Pink','Lavender Mist','Butter Yellow'], available_sizes:['XS','S','M','L','XL','XXL'], materials:['Cotton'], tags:['mini','casual','pastel'], short_description:'Smocked cotton mini in pastel shades.', description:'', image_urls:[] },
+  { id:'p1', sku:'Shaj-DR-001', barcode:'8801234567890', name:'Bloom Garden Midi Dress', category:'Dress', price:3200, cost_price:1400, compare_at_price:3900, total_stock:45, total_sold:12, badge:'New', is_active:true, is_featured:true, colors:['Blush Pink','Sage Green','Sky Blue'], available_sizes:['XS','S','M','L','XL'], materials:['Chiffon','Cotton'], tags:['floral','summer','midi'], short_description:'Floral chiffon midi with puff sleeves.', description:'', image_urls:[] },
+  { id:'p2', sku:'Shaj-DR-002', barcode:'8801234567891', name:'Sunset Ruffle Maxi Dress', category:'Dress', price:4100, cost_price:1800, compare_at_price:5200, total_stock:24, total_sold:8, badge:'Trending', is_active:true, is_featured:true, colors:['Coral Orange','Deep Burgundy','Ivory White'], available_sizes:['S','M','L'], materials:['Satin'], tags:['formal','maxi','evening'], short_description:'Satin ruffle maxi for formal occasions.', description:'', image_urls:[] },
+  { id:'p3', sku:'Shaj-BG-001', barcode:'8801234567892', name:'Pearl Quilted Shoulder Bag', category:'Bag', price:5800, cost_price:2200, compare_at_price:0, total_stock:18, total_sold:5, badge:'New', is_active:true, is_featured:true, colors:['Ivory White','Black Onyx','Dusty Rose'], available_sizes:['One Size'], materials:['Vegan Leather'], tags:['quilted','shoulder','pearl'], short_description:'Quilted vegan leather shoulder bag.', description:'', image_urls:[] },
+  { id:'p4', sku:'Shaj-JWL-001', barcode:'8801234567893', name:'Pearl Drop Earrings', category:'Jewelry', price:890, cost_price:290, compare_at_price:1100, total_stock:60, total_sold:38, badge:'Popular', is_active:true, is_featured:false, colors:['Gold','Silver'], available_sizes:['One Size'], materials:[], tags:['pearl','earrings','gold'], short_description:'Freshwater pearl drops with 18k gold finish.', description:'', image_urls:[] },
+  { id:'p5', sku:'Shaj-AC-001', barcode:'8801234567894', name:'Silk Scarf — Floral Print', category:'Accessory', price:1800, cost_price:600, compare_at_price:2200, total_stock:40, total_sold:10, badge:'New', is_active:true, is_featured:false, colors:['Multicolor','Blush Pink'], available_sizes:['One Size'], materials:['Silk'], tags:['scarf','floral','silk'], short_description:'100% silk twill scarf.', description:'', image_urls:[] },
+  { id:'p6', sku:'Shaj-DR-003', barcode:'8801234567895', name:'Cotton Candy Mini Dress', category:'Dress', price:2400, cost_price:950, compare_at_price:2900, total_stock:88, total_sold:22, badge:'Sale', is_active:false, is_featured:false, colors:['Cotton Candy Pink','Lavender Mist','Butter Yellow'], available_sizes:['XS','S','M','L','XL','XXL'], materials:['Cotton'], tags:['mini','casual','pastel'], short_description:'Smocked cotton mini in pastel shades.', description:'', image_urls:[] },
 ]
 
 /* ── Empty form ─────────────────────────────────────────────── */
@@ -478,13 +478,13 @@ export default function AdminProductsPage() {
                             <div className="flex items-center gap-2 border border-dashed border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50">
                               <span className="text-[12px] font-mono text-gray-400">Will generate: </span>
                               <span className="text-[13px] font-mono font-bold text-[#C2185B]">
-                                SJP-{CAT_CODE[form.category] ?? 'XX'}-{String(products.filter(p => p.category === form.category && p.id !== form.id).length + 1).padStart(3,'0')}
+                                Shaj-{CAT_CODE[form.category] ?? 'XX'}-{String(products.filter(p => p.category === form.category && p.id !== form.id).length + 1).padStart(3,'0')}
                               </span>
                             </div>
                           ) : (
                             <input type="text" value={form.sku}
                               onChange={e => F('sku', e.target.value.toUpperCase())}
-                              placeholder="e.g. SJP-DR-007"
+                              placeholder="e.g. Shaj-DR-007"
                               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-[13px] font-mono text-gray-700 focus:outline-none focus:border-gray-400 transition-colors uppercase" />
                           )}
                         </div>
