@@ -1,10 +1,11 @@
 'use client'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, Edit2, Trash2, Eye, EyeOff, Search,
   Upload, X, Tag, Star, Package, ChevronDown,
-  ImagePlus, Palette, Ruler, Layers, Info, DollarSign
+  ImagePlus, Palette, Ruler, Layers, Info, DollarSign,
+  GripVertical, Link2, CheckCircle2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { ProductCategory } from '@/types'
@@ -178,6 +179,167 @@ function SizePicker({ values, onChange }: { values: string[]; onChange: (v: stri
         ))}
       </div>
     </div>
+  )
+}
+
+/* ── Media Tab ───────────────────────────────────────────────── */
+function MediaTab({ urls, onChange }: { urls: string[]; onChange: (u: string[]) => void }) {
+  const fileRef  = useRef<HTMLInputElement>(null)
+  const [drag,   setDrag]   = useState(false)
+  const [urlInput, setUrlInput] = useState('')
+  const [dragIdx, setDragIdx]   = useState<number | null>(null)
+  const [overIdx, setOverIdx]   = useState<number | null>(null)
+
+  const readFiles = useCallback((files: FileList | null) => {
+    if (!files) return
+    const allowed = Array.from(files).filter(f => f.type.startsWith('image/') && f.size <= 10 * 1024 * 1024)
+    if (allowed.length < files.length) toast.error('Some files skipped (not image or >10MB)')
+    allowed.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = e => {
+        const result = e.target?.result as string
+        onChange([...urls, result])
+      }
+      reader.readAsDataURL(file)
+    })
+  }, [urls, onChange])
+
+  function addUrl() {
+    const u = urlInput.trim()
+    if (!u) return
+    if (!u.startsWith('http')) { toast.error('Enter a valid URL starting with http'); return }
+    onChange([...urls, u])
+    setUrlInput('')
+  }
+
+  function remove(i: number) { onChange(urls.filter((_, j) => j !== i)) }
+  function setThumbnail(i: number) {
+    if (i === 0) return
+    const next = [...urls]
+    ;[next[0], next[i]] = [next[i], next[0]]
+    onChange(next)
+    toast.success('Set as thumbnail')
+  }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault(); setDrag(false)
+    readFiles(e.dataTransfer.files)
+  }
+
+  function onReorderDrop(toIdx: number) {
+    if (dragIdx === null || dragIdx === toIdx) { setDragIdx(null); setOverIdx(null); return }
+    const next = [...urls]
+    const [moved] = next.splice(dragIdx, 1)
+    next.splice(toIdx, 0, moved)
+    onChange(next)
+    setDragIdx(null); setOverIdx(null)
+  }
+
+  return (
+    <motion.div key="media" initial={{ opacity:0, x:8 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:-8 }} className="space-y-4">
+
+      {/* Drop zone */}
+      <div
+        onDragEnter={e => { e.preventDefault(); setDrag(true) }}
+        onDragOver={e => { e.preventDefault(); setDrag(true) }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={onDrop}
+        onClick={() => fileRef.current?.click()}
+        className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
+          drag ? 'border-[#C2185B] bg-pink-50' : 'border-gray-200 hover:border-[#C2185B] hover:bg-pink-50/30'
+        }`}>
+        <input ref={fileRef} type="file" accept="image/*" multiple className="hidden"
+          onChange={e => readFiles(e.target.files)} />
+        <Upload size={28} className={`mx-auto mb-3 transition-colors ${drag ? 'text-[#C2185B]' : 'text-gray-300'}`} />
+        <p className="text-[13px] font-semibold text-gray-500">
+          {drag ? 'Drop images here' : 'Click or drag & drop images'}
+        </p>
+        <p className="text-[11px] text-gray-300 mt-1">PNG, JPG, WEBP, GIF · Max 10MB each · Multiple files supported</p>
+      </div>
+
+      {/* Image grid */}
+      {urls.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+              {urls.length} Image{urls.length > 1 ? 's' : ''} · Drag to reorder · First = thumbnail
+            </label>
+            <button onClick={() => onChange([])} className="text-[11px] text-red-400 hover:text-red-600 font-semibold">Remove all</button>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {urls.map((url, i) => (
+              <div key={i}
+                draggable
+                onDragStart={() => setDragIdx(i)}
+                onDragOver={e => { e.preventDefault(); setOverIdx(i) }}
+                onDrop={e => { e.preventDefault(); onReorderDrop(i) }}
+                onDragEnd={() => { setDragIdx(null); setOverIdx(null) }}
+                className={`relative group rounded-xl overflow-hidden border-2 transition-all cursor-grab active:cursor-grabbing ${
+                  i === 0 ? 'border-[#C2185B]' : overIdx === i ? 'border-[#C2185B] opacity-60' : 'border-gray-100'
+                }`}>
+                {/* Preview */}
+                <div className="aspect-square bg-gray-50">
+                  {url.startsWith('data:') || url.startsWith('http') ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-300">
+                      <ImagePlus size={24} />
+                    </div>
+                  )}
+                </div>
+
+                {/* Thumbnail badge */}
+                {i === 0 && (
+                  <div className="absolute top-1.5 left-1.5 bg-[#C2185B] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1">
+                    <Star size={8} fill="white" /> THUMB
+                  </div>
+                )}
+
+                {/* Drag handle */}
+                <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <GripVertical size={14} className="text-white drop-shadow" />
+                </div>
+
+                {/* Hover actions */}
+                <div className="absolute inset-x-0 bottom-0 flex gap-1 p-1.5 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                  {i !== 0 && (
+                    <button onClick={() => setThumbnail(i)}
+                      title="Set as thumbnail"
+                      className="flex-1 flex items-center justify-center gap-1 bg-white/20 hover:bg-white/40 text-white text-[10px] font-bold rounded-lg py-1 transition-colors backdrop-blur-sm">
+                      <Star size={10} /> Primary
+                    </button>
+                  )}
+                  <button onClick={() => remove(i)}
+                    className="flex items-center justify-center w-7 h-7 bg-red-500/80 hover:bg-red-500 text-white rounded-lg transition-colors">
+                    <X size={12} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Add by URL */}
+      <div>
+        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Or add by URL</label>
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Link2 size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
+            <input value={urlInput} onChange={e => setUrlInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addUrl()}
+              placeholder="https://example.com/image.jpg"
+              className="w-full border border-gray-200 rounded-lg pl-9 pr-3 py-2.5 text-[12px] font-mono text-gray-600 focus:outline-none focus:border-gray-400 transition-colors" />
+          </div>
+          <button onClick={addUrl}
+            className="px-4 py-2.5 text-[12px] font-bold text-white rounded-lg transition-opacity hover:opacity-90 whitespace-nowrap"
+            style={{ background: '#C2185B' }}>
+            Add URL
+          </button>
+        </div>
+      </div>
+    </motion.div>
   )
 }
 
@@ -620,39 +782,10 @@ export default function AdminProductsPage() {
 
                     {/* ── MEDIA ── */}
                     {tab === 'media' && (
-                      <motion.div key="media" initial={{ opacity:0, x:8 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:-8 }} className="space-y-4">
-                        <div className="border-2 border-dashed border-gray-200 rounded-lg p-10 text-center hover:border-gray-400 transition-colors cursor-pointer group">
-                          <Upload size={28} className="mx-auto text-gray-300 group-hover:text-gray-500 mb-3 transition-colors" />
-                          <p className="text-[13px] font-semibold text-gray-400 group-hover:text-gray-600">Click to upload product images</p>
-                          <p className="text-[11px] text-gray-300 mt-1">PNG, JPG, WEBP · Up to 10MB each · Uploads to Supabase Storage</p>
-                        </div>
-
-                        {/* Image URL inputs */}
-                        <div>
-                          <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Image URLs</label>
-                          <div className="space-y-2">
-                            {[...form.image_urls, ''].map((url, i) => (
-                              <div key={i} className="flex gap-2">
-                                <input value={url}
-                                  onChange={e => {
-                                    const urls = [...form.image_urls]
-                                    if (i < urls.length) urls[i] = e.target.value
-                                    else urls.push(e.target.value)
-                                    F('image_urls', urls.filter((u, idx) => u || idx < urls.length - 1))
-                                  }}
-                                  placeholder={`Image URL ${i + 1}${i === 0 ? ' (thumbnail)' : ''}`}
-                                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-[12px] text-gray-600 focus:outline-none focus:border-gray-400 font-mono" />
-                                {url && (
-                                  <button onClick={() => F('image_urls', form.image_urls.filter((_, j) => j !== i))}
-                                    className="p-2 text-gray-300 hover:text-red-400 transition-colors">
-                                    <X size={14} />
-                                  </button>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </motion.div>
+                      <MediaTab
+                        urls={form.image_urls}
+                        onChange={urls => F('image_urls', urls)}
+                      />
                     )}
                   </AnimatePresence>
                 </div>
