@@ -23,7 +23,7 @@ interface Suggestion {
 }
 
 function SearchBox({ inputRef, query, setQuery, onSubmit, suggestions, showSuggestions, setShowSuggestions, loading }: {
-  inputRef: React.RefObject<HTMLInputElement | null>
+  inputRef: React.RefObject<HTMLInputElement>
   query: string
   setQuery: (q: string) => void
   onSubmit: (e: React.FormEvent) => void
@@ -110,8 +110,8 @@ export default function Navbar() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [suggestLoading, setSuggestLoading] = useState(false)
 
-  const searchRef    = useRef<HTMLInputElement>(null)
-  const mobileSearchRef = useRef<HTMLInputElement>(null)
+  const searchRef    = useRef<HTMLInputElement>(null) as React.RefObject<HTMLInputElement>
+  const mobileSearchRef = useRef<HTMLInputElement>(null) as React.RefObject<HTMLInputElement>
   const dropdownRef  = useRef<HTMLDivElement>(null)
   const debounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
   const router       = useRouter()
