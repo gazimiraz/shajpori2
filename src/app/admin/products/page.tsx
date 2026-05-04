@@ -33,24 +33,45 @@ const CAT_COLOR: Record<string,string> = {
 
 /* ── Mock data ─────────────────────────────────────────────── */
 type MockProduct = {
-  id:string; sku:string; name:string; category:ProductCategory; price:number;
+  id:string; sku:string; barcode:string; name:string; category:ProductCategory; price:number;
   cost_price:number; compare_at_price:number; total_stock:number; total_sold:number;
   badge:string; is_active:boolean; is_featured:boolean; colors:string[];
   available_sizes:string[]; materials:string[]; tags:string[];
   short_description:string; description:string; image_urls:string[];
 }
+
+/* ── Auto-generators ─────────────────────────────────────────── */
+const CAT_CODE: Record<string, string> = {
+  Dress:'DR', Bag:'BG', Jewelry:'JWL', Accessory:'AC', Footwear:'FW',
+}
+
+function generateSKU(category: string, existing: MockProduct[]): string {
+  const code = CAT_CODE[category] ?? 'XX'
+  const same  = existing.filter(p => p.category === category)
+  const seq   = String(same.length + 1).padStart(3, '0')
+  return `SJP-${code}-${seq}`
+}
+
+function generateBarcode(): string {
+  // EAN-13: country prefix 880 (Bangladesh) + 9 random digits + check digit
+  const body = '880' + Array.from({ length: 9 }, () => Math.floor(Math.random() * 10)).join('')
+  let sum = 0
+  for (let i = 0; i < 12; i++) sum += parseInt(body[i]) * (i % 2 === 0 ? 1 : 3)
+  const check = (10 - (sum % 10)) % 10
+  return body + check
+}
 const MOCK: MockProduct[] = [
-  { id:'p1', sku:'SJP-DR-001', name:'Bloom Garden Midi Dress', category:'Dress', price:3200, cost_price:1400, compare_at_price:3900, total_stock:45, total_sold:12, badge:'New', is_active:true, is_featured:true, colors:['Blush Pink','Sage Green','Sky Blue'], available_sizes:['XS','S','M','L','XL'], materials:['Chiffon','Cotton'], tags:['floral','summer','midi'], short_description:'Floral chiffon midi with puff sleeves.', description:'', image_urls:[] },
-  { id:'p2', sku:'SJP-DR-002', name:'Sunset Ruffle Maxi Dress', category:'Dress', price:4100, cost_price:1800, compare_at_price:5200, total_stock:24, total_sold:8, badge:'Trending', is_active:true, is_featured:true, colors:['Coral Orange','Deep Burgundy','Ivory White'], available_sizes:['S','M','L'], materials:['Satin'], tags:['formal','maxi','evening'], short_description:'Satin ruffle maxi for formal occasions.', description:'', image_urls:[] },
-  { id:'p3', sku:'SJP-BG-001', name:'Pearl Quilted Shoulder Bag', category:'Bag', price:5800, cost_price:2200, compare_at_price:0, total_stock:18, total_sold:5, badge:'New', is_active:true, is_featured:true, colors:['Ivory White','Black Onyx','Dusty Rose'], available_sizes:['One Size'], materials:['Vegan Leather'], tags:['quilted','shoulder','pearl'], short_description:'Quilted vegan leather shoulder bag.', description:'', image_urls:[] },
-  { id:'p4', sku:'SJP-JWL-001', name:'Pearl Drop Earrings', category:'Jewelry', price:890, cost_price:290, compare_at_price:1100, total_stock:60, total_sold:38, badge:'Popular', is_active:true, is_featured:false, colors:['Gold','Silver'], available_sizes:['One Size'], materials:[], tags:['pearl','earrings','gold'], short_description:'Freshwater pearl drops with 18k gold finish.', description:'', image_urls:[] },
-  { id:'p5', sku:'SJP-AC-001', name:'Silk Scarf — Floral Print', category:'Accessory', price:1800, cost_price:600, compare_at_price:2200, total_stock:40, total_sold:10, badge:'New', is_active:true, is_featured:false, colors:['Multicolor','Blush Pink'], available_sizes:['One Size'], materials:['Silk'], tags:['scarf','floral','silk'], short_description:'100% silk twill scarf.', description:'', image_urls:[] },
-  { id:'p6', sku:'SJP-DR-003', name:'Cotton Candy Mini Dress', category:'Dress', price:2400, cost_price:950, compare_at_price:2900, total_stock:88, total_sold:22, badge:'Sale', is_active:false, is_featured:false, colors:['Cotton Candy Pink','Lavender Mist','Butter Yellow'], available_sizes:['XS','S','M','L','XL','XXL'], materials:['Cotton'], tags:['mini','casual','pastel'], short_description:'Smocked cotton mini in pastel shades.', description:'', image_urls:[] },
+  { id:'p1', sku:'SJP-DR-001', barcode:'8801234567890', name:'Bloom Garden Midi Dress', category:'Dress', price:3200, cost_price:1400, compare_at_price:3900, total_stock:45, total_sold:12, badge:'New', is_active:true, is_featured:true, colors:['Blush Pink','Sage Green','Sky Blue'], available_sizes:['XS','S','M','L','XL'], materials:['Chiffon','Cotton'], tags:['floral','summer','midi'], short_description:'Floral chiffon midi with puff sleeves.', description:'', image_urls:[] },
+  { id:'p2', sku:'SJP-DR-002', barcode:'8801234567891', name:'Sunset Ruffle Maxi Dress', category:'Dress', price:4100, cost_price:1800, compare_at_price:5200, total_stock:24, total_sold:8, badge:'Trending', is_active:true, is_featured:true, colors:['Coral Orange','Deep Burgundy','Ivory White'], available_sizes:['S','M','L'], materials:['Satin'], tags:['formal','maxi','evening'], short_description:'Satin ruffle maxi for formal occasions.', description:'', image_urls:[] },
+  { id:'p3', sku:'SJP-BG-001', barcode:'8801234567892', name:'Pearl Quilted Shoulder Bag', category:'Bag', price:5800, cost_price:2200, compare_at_price:0, total_stock:18, total_sold:5, badge:'New', is_active:true, is_featured:true, colors:['Ivory White','Black Onyx','Dusty Rose'], available_sizes:['One Size'], materials:['Vegan Leather'], tags:['quilted','shoulder','pearl'], short_description:'Quilted vegan leather shoulder bag.', description:'', image_urls:[] },
+  { id:'p4', sku:'SJP-JWL-001', barcode:'8801234567893', name:'Pearl Drop Earrings', category:'Jewelry', price:890, cost_price:290, compare_at_price:1100, total_stock:60, total_sold:38, badge:'Popular', is_active:true, is_featured:false, colors:['Gold','Silver'], available_sizes:['One Size'], materials:[], tags:['pearl','earrings','gold'], short_description:'Freshwater pearl drops with 18k gold finish.', description:'', image_urls:[] },
+  { id:'p5', sku:'SJP-AC-001', barcode:'8801234567894', name:'Silk Scarf — Floral Print', category:'Accessory', price:1800, cost_price:600, compare_at_price:2200, total_stock:40, total_sold:10, badge:'New', is_active:true, is_featured:false, colors:['Multicolor','Blush Pink'], available_sizes:['One Size'], materials:['Silk'], tags:['scarf','floral','silk'], short_description:'100% silk twill scarf.', description:'', image_urls:[] },
+  { id:'p6', sku:'SJP-DR-003', barcode:'8801234567895', name:'Cotton Candy Mini Dress', category:'Dress', price:2400, cost_price:950, compare_at_price:2900, total_stock:88, total_sold:22, badge:'Sale', is_active:false, is_featured:false, colors:['Cotton Candy Pink','Lavender Mist','Butter Yellow'], available_sizes:['XS','S','M','L','XL','XXL'], materials:['Cotton'], tags:['mini','casual','pastel'], short_description:'Smocked cotton mini in pastel shades.', description:'', image_urls:[] },
 ]
 
 /* ── Empty form ─────────────────────────────────────────────── */
 const EMPTY = (): MockProduct => ({
-  id:'', sku:'', name:'', category:'Dress', price:0, cost_price:0, compare_at_price:0,
+  id:'', sku:'', barcode:'', name:'', category:'Dress', price:0, cost_price:0, compare_at_price:0,
   total_stock:0, total_sold:0, badge:'', is_active:true, is_featured:false,
   colors:[], available_sizes:[], materials:[], tags:[], short_description:'', description:'', image_urls:[],
 })
@@ -162,13 +183,15 @@ function SizePicker({ values, onChange }: { values: string[]; onChange: (v: stri
 
 /* ══════════════════════════════════════════════════════════════ */
 export default function AdminProductsPage() {
-  const [products,  setProducts]  = useState<MockProduct[]>(MOCK)
-  const [search,    setSearch]    = useState('')
-  const [catFilter, setCatFilter] = useState('All')
-  const [showForm,  setShowForm]  = useState(false)
-  const [form,      setForm]      = useState<MockProduct>(EMPTY())
-  const [tab,       setTab]       = useState('basic')
-  const [tagInput,  setTagInput]  = useState('')
+  const [products,   setProducts]   = useState<MockProduct[]>(MOCK)
+  const [search,     setSearch]     = useState('')
+  const [catFilter,  setCatFilter]  = useState('All')
+  const [showForm,   setShowForm]   = useState(false)
+  const [form,       setForm]       = useState<MockProduct>(EMPTY())
+  const [tab,        setTab]        = useState('basic')
+  const [tagInput,   setTagInput]   = useState('')
+  const [skuMode,    setSkuMode]    = useState<'auto' | 'manual'>('auto')
+  const [barcodeMode,setBarcodeMode]= useState<'auto' | 'manual'>('auto')
 
   const filtered = useMemo(() => products.filter(p => {
     const q = search.toLowerCase()
@@ -176,25 +199,33 @@ export default function AdminProductsPage() {
       (!q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q))
   }), [products, search, catFilter])
 
-  const openNew  = () => { setForm(EMPTY()); setTab('basic'); setShowForm(true) }
-  const openEdit = (p: MockProduct) => { setForm({ ...p }); setTab('basic'); setShowForm(true) }
+  const openNew  = () => { setForm(EMPTY()); setSkuMode('auto'); setBarcodeMode('auto'); setTab('basic'); setShowForm(true) }
+  const openEdit = (p: MockProduct) => {
+    setForm({ ...p })
+    setSkuMode(p.sku ? 'manual' : 'auto')
+    setBarcodeMode(p.barcode ? 'manual' : 'auto')
+    setTab('basic'); setShowForm(true)
+  }
   const closeForm = () => { setShowForm(false); setForm(EMPTY()) }
 
   const F = <K extends keyof MockProduct>(k: K, v: MockProduct[K]) => setForm(f => ({ ...f, [k]: v }))
 
   const handleSave = () => {
-    if (!form.name.trim())  { toast.error('Product name is required'); setTab('basic'); return }
-    if (!form.sku.trim())   { toast.error('SKU is required'); setTab('basic'); return }
-    if (!form.price)        { toast.error('Sell price is required'); setTab('pricing'); return }
+    if (!form.name.trim()) { toast.error('Product name is required'); setTab('basic'); return }
+    if (!form.price)       { toast.error('Sell price is required'); setTab('pricing'); return }
     if (form.colors.length === 0) { toast.error('Select at least one color'); setTab('attributes'); return }
     if (form.available_sizes.length === 0) { toast.error('Select at least one size'); setTab('attributes'); return }
 
+    const sku     = skuMode === 'auto' || !form.sku.trim()     ? generateSKU(form.category, products) : form.sku.trim()
+    const barcode = barcodeMode === 'auto' || !form.barcode.trim() ? generateBarcode()                : form.barcode.trim()
+
+    const saved = { ...form, sku, barcode }
     if (form.id) {
-      setProducts(ps => ps.map(p => p.id === form.id ? { ...form } : p))
+      setProducts(ps => ps.map(p => p.id === form.id ? saved : p))
       toast.success('Product updated')
     } else {
-      setProducts(ps => [{ ...form, id: 'p' + Date.now() }, ...ps])
-      toast.success('Product created')
+      setProducts(ps => [{ ...saved, id: 'p' + Date.now() }, ...ps])
+      toast.success(`Product created · SKU: ${sku}`)
     }
     closeForm()
   }
@@ -427,9 +458,69 @@ export default function AdminProductsPage() {
                     {/* ── BASIC INFO ── */}
                     {tab === 'basic' && (
                       <motion.div key="basic" initial={{ opacity:0, x:8 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:-8 }} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          {input('Product Name *', 'name', 'text', 'e.g. Blossom Wrap Dress')}
-                          {input('SKU *', 'sku', 'text', 'e.g. SJP-DR-007')}
+                        {input('Product Name *', 'name', 'text', 'e.g. Blossom Wrap Dress')}
+
+                        {/* SKU field */}
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-gray-400">SKU</label>
+                            <div className="flex rounded-lg border border-gray-200 overflow-hidden text-[11px] font-bold">
+                              {(['auto','manual'] as const).map(m => (
+                                <button key={m} onClick={() => setSkuMode(m)}
+                                  className={`px-3 py-1 transition-colors ${skuMode === m ? 'text-white' : 'text-gray-400 hover:text-gray-600'}`}
+                                  style={skuMode === m ? { background:'#C2185B' } : {}}>
+                                  {m === 'auto' ? '⚡ Auto' : '✏️ Manual'}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          {skuMode === 'auto' ? (
+                            <div className="flex items-center gap-2 border border-dashed border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50">
+                              <span className="text-[12px] font-mono text-gray-400">Will generate: </span>
+                              <span className="text-[13px] font-mono font-bold text-[#C2185B]">
+                                SJP-{CAT_CODE[form.category] ?? 'XX'}-{String(products.filter(p => p.category === form.category && p.id !== form.id).length + 1).padStart(3,'0')}
+                              </span>
+                            </div>
+                          ) : (
+                            <input type="text" value={form.sku}
+                              onChange={e => F('sku', e.target.value.toUpperCase())}
+                              placeholder="e.g. SJP-DR-007"
+                              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-[13px] font-mono text-gray-700 focus:outline-none focus:border-gray-400 transition-colors uppercase" />
+                          )}
+                        </div>
+
+                        {/* Barcode field */}
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Barcode (EAN-13)</label>
+                            <div className="flex rounded-lg border border-gray-200 overflow-hidden text-[11px] font-bold">
+                              {(['auto','manual'] as const).map(m => (
+                                <button key={m} onClick={() => setBarcodeMode(m)}
+                                  className={`px-3 py-1 transition-colors ${barcodeMode === m ? 'text-white' : 'text-gray-400 hover:text-gray-600'}`}
+                                  style={barcodeMode === m ? { background:'#C2185B' } : {}}>
+                                  {m === 'auto' ? '⚡ Auto' : '✏️ Manual'}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          {barcodeMode === 'auto' ? (
+                            <div className="flex items-center gap-2 border border-dashed border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50">
+                              <span className="text-[12px] font-mono text-gray-400">Will generate: </span>
+                              <span className="text-[13px] font-mono font-bold text-[#C2185B]">880xxxxxxxxxx</span>
+                              <span className="ml-auto text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded">Bangladesh EAN-13</span>
+                            </div>
+                          ) : (
+                            <div className="relative">
+                              <input type="text" value={form.barcode}
+                                onChange={e => F('barcode', e.target.value.replace(/\D/g, '').slice(0, 13))}
+                                placeholder="13-digit barcode e.g. 8801234567890"
+                                maxLength={13}
+                                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-[13px] font-mono text-gray-700 focus:outline-none focus:border-gray-400 transition-colors pr-16" />
+                              <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold ${form.barcode.length === 13 ? 'text-green-500' : 'text-gray-300'}`}>
+                                {form.barcode.length}/13
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
