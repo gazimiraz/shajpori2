@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -10,8 +10,93 @@ import {
 import { useCartStore } from '@/store/cartStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useMenuStore } from '@/lib/menuStore'
+import { useRouter } from 'next/navigation'
 
 const BRAND = '#FF66A3'
+
+interface Suggestion {
+  id: string
+  name: string
+  category: string
+  price: number
+  images: string[]
+}
+
+function SearchBox({ inputRef, query, setQuery, onSubmit, suggestions, showSuggestions, setShowSuggestions, loading }: {
+  inputRef: React.RefObject<HTMLInputElement | null>
+  query: string
+  setQuery: (q: string) => void
+  onSubmit: (e: React.FormEvent) => void
+  suggestions: Suggestion[]
+  showSuggestions: boolean
+  setShowSuggestions: (v: boolean) => void
+  loading: boolean
+}) {
+  return (
+    <div className="relative w-full">
+      <form onSubmit={onSubmit} className="relative flex items-center">
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => query.length >= 2 && setShowSuggestions(true)}
+          placeholder="Enter product name..."
+          className="w-full h-11 pl-5 pr-14 text-[14px] text-gray-700 placeholder-gray-400 border border-gray-200 rounded-lg outline-none focus:border-[#FF66A3] focus:ring-1 focus:ring-[#FF66A3]/30 transition-all shadow-sm"
+          autoComplete="off"
+        />
+        <button type="submit" className="absolute right-4 text-gray-500 hover:text-[#FF66A3] transition-colors">
+          {loading
+            ? <span className="w-4 h-4 border-2 border-gray-300 border-t-[#FF66A3] rounded-full animate-spin block" />
+            : <Search size={20} strokeWidth={2} />}
+        </button>
+      </form>
+
+      <AnimatePresence>
+        {showSuggestions && suggestions.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.12 }}
+            className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-xl z-[200] overflow-hidden"
+          >
+            {suggestions.map((s, i) => (
+              <Link
+                key={s.id}
+                href={`/products/${s.id}`}
+                onClick={() => { setShowSuggestions(false); setQuery('') }}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-pink-50 transition-colors group border-b border-gray-50 last:border-0"
+              >
+                {/* Thumbnail */}
+                <div className="w-10 h-10 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
+                  {s.images?.[0]
+                    ? <img src={s.images[0]} alt={s.name} className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center text-gray-300"><Search size={14} /></div>
+                  }
+                </div>
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold text-gray-800 group-hover:text-[#FF66A3] truncate transition-colors">{s.name}</p>
+                  <p className="text-[11px] text-gray-400 capitalize">{s.category}</p>
+                </div>
+                {/* Price */}
+                <span className="text-[13px] font-bold text-[#FF66A3] shrink-0">৳{s.price.toLocaleString()}</span>
+              </Link>
+            ))}
+            {/* View all results */}
+            <button
+              onClick={() => { setShowSuggestions(false); window.location.href = `/products?search=${encodeURIComponent(query)}` }}
+              className="w-full px-4 py-2.5 text-[12px] font-semibold text-[#FF66A3] hover:bg-pink-50 transition-colors text-center border-t border-gray-100"
+            >
+              See all results for &ldquo;{query}&rdquo; →
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
 export default function Navbar() {
   const [mega,        setMega]        = useState<string | null>(null)
@@ -21,7 +106,15 @@ export default function Navbar() {
   const [searchOpen,  setSearchOpen]  = useState(false)
   const [scrolled,    setScrolled]    = useState(false)
   const [mounted,     setMounted]     = useState(false)
-  const searchRef = useRef<HTMLInputElement>(null)
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [suggestLoading, setSuggestLoading] = useState(false)
+
+  const searchRef    = useRef<HTMLInputElement>(null)
+  const mobileSearchRef = useRef<HTMLInputElement>(null)
+  const dropdownRef  = useRef<HTMLDivElement>(null)
+  const debounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const router       = useRouter()
 
   const { totalItems, toggleCart } = useCartStore()
   const count = totalItems()
@@ -36,17 +129,55 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
-    if (searchOpen) setTimeout(() => searchRef.current?.focus(), 80)
+    if (searchOpen) setTimeout(() => mobileSearchRef.current?.focus(), 80)
   }, [searchOpen])
+
+  // Close suggestions on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  // Debounced suggestion fetch
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (query.trim().length < 2) { setSuggestions([]); setShowSuggestions(false); return }
+
+    debounceRef.current = setTimeout(async () => {
+      setSuggestLoading(true)
+      try {
+        const res = await fetch(`/api/products?search=${encodeURIComponent(query.trim())}&per_page=6`)
+        const json = await res.json()
+        if (json.data) {
+          setSuggestions(json.data.slice(0, 6))
+          setShowSuggestions(true)
+        }
+      } catch {
+        /* silent */
+      } finally {
+        setSuggestLoading(false)
+      }
+    }, 300)
+
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [query])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (query.trim()) window.location.href = `/products?search=${encodeURIComponent(query.trim())}`
+    if (query.trim()) {
+      setShowSuggestions(false)
+      router.push(`/products?search=${encodeURIComponent(query.trim())}`)
+    }
   }
 
   return (
     <div className="w-full bg-white flex flex-col relative z-50">
-      
+
       {/* ═══════════════════════════════════════
           TIER 1 — Solid Pink Top Bar
       ═══════════════════════════════════════ */}
@@ -57,7 +188,7 @@ export default function Navbar() {
       ═══════════════════════════════════════ */}
       <div className={`transition-all duration-300 ${scrolled ? 'fixed top-0 left-0 right-0 glass shadow-sm border-b border-gray-100 z-50 py-1' : 'py-5'}`}>
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 flex items-center justify-between gap-6 sm:gap-10">
-          
+
           {/* Mobile Menu Toggle */}
           <button className="lg:hidden p-2 -ml-2 text-gray-600 hover:text-[#FF66A3] transition-colors"
             onClick={() => setMobileOpen(v => !v)}>
@@ -76,20 +207,17 @@ export default function Navbar() {
           </Link>
 
           {/* Large Search Bar (Desktop) */}
-          <div className="flex-1 max-w-3xl hidden md:block mx-auto">
-            <form onSubmit={handleSearch} className="relative flex items-center">
-              <input
-                ref={searchRef}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Enter product name..."
-                className="w-full h-11 pl-5 pr-14 text-[14px] text-gray-700 placeholder-gray-400 border border-gray-200 rounded-lg outline-none focus:border-[#FF66A3] focus:ring-1 focus:ring-[#FF66A3]/30 transition-all shadow-sm"
-              />
-              <button type="submit" className="absolute right-4 text-gray-500 hover:text-[#FF66A3] transition-colors">
-                <Search size={20} strokeWidth={2} />
-              </button>
-            </form>
+          <div className="flex-1 max-w-3xl hidden md:block mx-auto" ref={dropdownRef}>
+            <SearchBox
+              inputRef={searchRef}
+              query={query}
+              setQuery={setQuery}
+              onSubmit={handleSearch}
+              suggestions={suggestions}
+              showSuggestions={showSuggestions}
+              setShowSuggestions={setShowSuggestions}
+              loading={suggestLoading}
+            />
           </div>
 
           {/* Action Icons */}
@@ -106,7 +234,7 @@ export default function Navbar() {
               </div>
               <span className="text-[11px] text-gray-500 font-medium group-hover:text-[#FF66A3]">Account</span>
             </Link>
-            
+
             <Link href="/wishlist" className="hidden sm:flex flex-col items-center gap-1 group">
               <div className="w-10 h-10 rounded-full border border-gray-100 bg-white flex items-center justify-center text-[#FF66A3] group-hover:border-[#FF66A3]/30 group-hover:shadow-sm transition-all">
                 <Heart size={18} strokeWidth={2.2} className="fill-[#FF66A3] text-[#FF66A3]" />
@@ -131,16 +259,20 @@ export default function Navbar() {
         {/* Mobile Expandable Search */}
         <AnimatePresence>
           {searchOpen && (
-            <motion.div className="md:hidden px-4 pb-4 overflow-hidden"
+            <motion.div className="md:hidden px-4 pb-4 overflow-visible"
               initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
-              <form onSubmit={handleSearch} className="relative flex items-center mt-2">
-                <input type="text" value={query} onChange={e => setQuery(e.target.value)}
-                  placeholder="Enter product name..." autoFocus
-                  className="w-full h-11 pl-4 pr-12 text-[14px] text-gray-700 placeholder-gray-400 border border-gray-200 rounded-lg outline-none focus:border-[#FF66A3] transition-all" />
-                <button type="submit" className="absolute right-4 text-gray-500 hover:text-[#FF66A3]">
-                  <Search size={18} strokeWidth={2} />
-                </button>
-              </form>
+              <div className="mt-2">
+                <SearchBox
+                  inputRef={mobileSearchRef}
+                  query={query}
+                  setQuery={setQuery}
+                  onSubmit={handleSearch}
+                  suggestions={suggestions}
+                  showSuggestions={showSuggestions}
+                  setShowSuggestions={setShowSuggestions}
+                  loading={suggestLoading}
+                />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -152,10 +284,10 @@ export default function Navbar() {
       {!scrolled && (
         <div className="border-t border-b border-gray-100 bg-white hidden lg:block">
           <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-2 flex items-center gap-3">
-            
+
             {/* All Categories Dropdown Button */}
             <div className="relative" onMouseLeave={() => setMega(null)}>
-              <button 
+              <button
                 onMouseEnter={() => setMega('categories')}
                 className="flex items-center justify-between w-[220px] bg-[#FF66A3] hover:bg-[#F4518C] text-white px-4 py-2.5 rounded-md font-medium text-[14.5px] transition-colors shadow-sm cursor-pointer">
                 <span className="flex items-center gap-2">
@@ -165,7 +297,6 @@ export default function Navbar() {
                 <ChevronDown size={16} />
               </button>
 
-              {/* Dropdown Menu (Re-using NAV structure for categories) */}
               <AnimatePresence>
                 {mega === 'categories' && (
                   <motion.div
@@ -193,7 +324,7 @@ export default function Navbar() {
                 { label: 'Preorder', icon: Calendar, href: '/preorder' },
                 { label: 'Buy 1 Get 1', icon: Gift, href: '/bogo' },
               ].map((pill) => (
-                <Link key={pill.label} href={pill.href} 
+                <Link key={pill.label} href={pill.href}
                   className={`flex items-center gap-2 px-4 py-2 rounded-md border ${pill.active ? 'border-pink-200 text-[#FF66A3] bg-pink-50/50' : 'border-gray-200 text-gray-600 hover:border-pink-300 hover:text-[#FF66A3] hover:bg-pink-50'} transition-all`}>
                   <pill.icon size={16} strokeWidth={pill.active ? 2.5 : 1.5} className={pill.active ? "text-[#FF66A3]" : "text-gray-500"} />
                   <span className={`text-[13.5px] ${pill.active ? 'font-semibold' : 'font-medium'}`}>{pill.label}</span>
