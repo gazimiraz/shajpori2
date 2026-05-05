@@ -116,9 +116,7 @@ export default function Navbar() {
   const mobileSearchRef = useRef<HTMLInputElement>(null) as React.RefObject<HTMLInputElement>
   const dropdownRef     = useRef<HTMLDivElement>(null)
   const debounceRef     = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const supabaseRef     = useRef<ReturnType<typeof createBrowserClient> | null>(null)
   const router          = useRouter()
-  if (!supabaseRef.current) supabaseRef.current = createBrowserClient()
 
   const { totalItems, toggleCart } = useCartStore()
   const count = totalItems()
@@ -129,7 +127,8 @@ export default function Navbar() {
     setMounted(true)
     const fn = () => setScrolled(window.scrollY > 4)
     window.addEventListener('scroll', fn, { passive: true })
-    supabaseRef.current!.auth.getUser().then(({ data: { user } }) => setAuthed(!!user))
+    // createBrowserClient must only run in the browser (useEffect = client-only)
+    createBrowserClient().auth.getUser().then(({ data: { user } }) => setAuthed(!!user))
     return () => window.removeEventListener('scroll', fn)
   }, [])
 
