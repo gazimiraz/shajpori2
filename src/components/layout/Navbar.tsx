@@ -11,6 +11,7 @@ import { useCartStore } from '@/store/cartStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useMenuStore } from '@/lib/menuStore'
 import { useRouter } from 'next/navigation'
+import { createBrowserClient } from '@/lib/supabase'
 
 const BRAND = '#FF66A3'
 
@@ -106,15 +107,18 @@ export default function Navbar() {
   const [searchOpen,  setSearchOpen]  = useState(false)
   const [scrolled,    setScrolled]    = useState(false)
   const [mounted,     setMounted]     = useState(false)
+  const [authed,      setAuthed]      = useState(false)
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [suggestLoading, setSuggestLoading] = useState(false)
 
-  const searchRef    = useRef<HTMLInputElement>(null) as React.RefObject<HTMLInputElement>
+  const searchRef       = useRef<HTMLInputElement>(null) as React.RefObject<HTMLInputElement>
   const mobileSearchRef = useRef<HTMLInputElement>(null) as React.RefObject<HTMLInputElement>
-  const dropdownRef  = useRef<HTMLDivElement>(null)
-  const debounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const router       = useRouter()
+  const dropdownRef     = useRef<HTMLDivElement>(null)
+  const debounceRef     = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const supabaseRef     = useRef<ReturnType<typeof createBrowserClient> | null>(null)
+  const router          = useRouter()
+  if (!supabaseRef.current) supabaseRef.current = createBrowserClient()
 
   const { totalItems, toggleCart } = useCartStore()
   const count = totalItems()
@@ -125,6 +129,7 @@ export default function Navbar() {
     setMounted(true)
     const fn = () => setScrolled(window.scrollY > 4)
     window.addEventListener('scroll', fn, { passive: true })
+    supabaseRef.current!.auth.getUser().then(({ data: { user } }) => setAuthed(!!user))
     return () => window.removeEventListener('scroll', fn)
   }, [])
 
@@ -228,11 +233,11 @@ export default function Navbar() {
               <Search size={22} strokeWidth={1.8} />
             </button>
 
-            <Link href="/auth" className="hidden sm:flex flex-col items-center gap-1 group">
-              <div className="w-10 h-10 rounded-full border border-gray-100 bg-white flex items-center justify-center text-[#FF66A3] group-hover:border-[#FF66A3]/30 group-hover:shadow-sm transition-all">
+            <Link href={authed ? '/profile' : '/auth'} className="hidden sm:flex flex-col items-center gap-1 group">
+              <div className={`w-10 h-10 rounded-full border bg-white flex items-center justify-center text-[#FF66A3] group-hover:shadow-sm transition-all ${authed ? 'border-[#FF66A3]/40' : 'border-gray-100 group-hover:border-[#FF66A3]/30'}`}>
                 <User size={18} strokeWidth={2.2} />
               </div>
-              <span className="text-[11px] text-gray-500 font-medium group-hover:text-[#FF66A3]">Account</span>
+              <span className="text-[11px] text-gray-500 font-medium group-hover:text-[#FF66A3]">{authed ? 'Profile' : 'Account'}</span>
             </Link>
 
             <Link href="/wishlist" className="hidden sm:flex flex-col items-center gap-1 group">
