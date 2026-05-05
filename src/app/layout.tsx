@@ -8,9 +8,28 @@ import './globals.css'
 const playfair = Playfair_Display({ subsets:['latin'], variable:'--font-display', display:'swap' })
 const dmSans = DM_Sans({ subsets:['latin'], variable:'--font-body', display:'swap' })
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://shajpori2.vercel.app'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(BASE_URL),
   title: { default:"Shajpori — Modern Women's Fashion", template:'%s | Shajpori' },
   description:"Bangladesh's favourite destination for modern western dresses, designer bags & accessories.",
+  keywords: ['western dress', 'women fashion', 'designer bags', 'accessories', 'bangladesh fashion', 'shajpori'],
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: BASE_URL,
+    siteName: 'Shajpori',
+    title: "Shajpori — Modern Women's Fashion",
+    description: "Bangladesh's favourite destination for modern western dresses, designer bags & accessories.",
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Shajpori Fashion' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Shajpori — Modern Women's Fashion",
+    description: "Bangladesh's favourite destination for modern western dresses, designer bags & accessories.",
+    images: ['/opengraph-image'],
+  },
 }
 
 export default function RootLayout({ children }:{ children: React.ReactNode }) {
