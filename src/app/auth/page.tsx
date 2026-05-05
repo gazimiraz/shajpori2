@@ -54,7 +54,10 @@ export default function AuthPage() {
         const { data, error } = await supabase.auth.signUp({
           email:    form.email,
           password: form.password,
-          options:  { data: { full_name: form.full_name } },
+          options:  {
+            data: { full_name: form.full_name },
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
         })
         if (error) { toast.error(friendlyError(error.message)); return }
 
@@ -62,6 +65,14 @@ export default function AuthPage() {
         if (data.user && data.user.identities?.length === 0) {
           toast.error('An account with this email already exists. Try signing in.')
           setMode('login')
+          return
+        }
+
+        // Email confirmation disabled — user is signed in immediately
+        if (data.session) {
+          toast.success('Account created! Welcome!')
+          router.push('/')
+          router.refresh()
           return
         }
 
@@ -83,7 +94,11 @@ export default function AuthPage() {
   }
 
   const resendConfirmation = async () => {
-    const { error } = await supabase.auth.resend({ type: 'signup', email: form.email })
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: form.email,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    })
     if (error) toast.error(friendlyError(error.message))
     else toast.success('Confirmation email resent!')
   }
